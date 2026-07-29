@@ -201,6 +201,31 @@ def gather(conn) -> dict:
         except Exception as e:
             logger.warning(f"產生計畫失敗：{e}")
 
+    # ── 營收與獲利路徑 ──
+    d["revenue"] = {}
+    d["projection"] = {}
+    try:
+        sys.path.insert(0, str(BASE_DIR))
+        from cp_revenue import revenue_summary, project_ypp
+        d["revenue"] = revenue_summary(conn)
+        d["projection"] = project_ypp(conn)
+    except Exception as e:
+        logger.warning(f"營收資料讀取失敗：{e}")
+
+    # ── 關鍵字機會與競品 ──
+    d["keywords"] = []
+    d["competitors"] = []
+    try:
+        d["keywords"] = [dict(r) for r in q(conn, """
+            SELECT term, lang, opportunity, top_median_views, top_median_subs
+            FROM keywords WHERE opportunity > 0
+            ORDER BY opportunity DESC LIMIT 10""")]
+        d["competitors"] = [dict(r) for r in q(conn, """
+            SELECT title, subs, recent_uploads, avg_recent_views
+            FROM competitors ORDER BY subs DESC LIMIT 8""")]
+    except Exception:
+        pass   # 表還沒建立時安靜跳過
+
     return d
 
 
@@ -319,6 +344,76 @@ def render(d: dict) -> str:
     cost_html = " · ".join(
         f"{c['service']} ${round(c['usd'] or 0, 2)}" for c in d["costs"]
     ) or "無記錄"
+
+    # ── 獲利路徑 ──
+    proj = d.get("projection") or {}
+    rate = proj.get("rate") or {}
+    rev = d.get("revenue") or {}
+
+    if proj.get("verdict"):
+        if rate.get("reliable"):
+            eta_line = (
+                f"<div class='v'>{proj.get('days_total', '?')} 天</div>"
+                f"<div class='c'>{proj['verdict']}"
+                + (f" ｜ 瓶頸：{proj.get('bottleneck','')}"
+                   if proj.get("bottleneck") else "") + "</div>")
+        else:
+            eta_line = (f"<div class='v' style='font-size:18px'>資料不足</div>"
+                        f"<div class='c'>{proj['verdict']}</div>")
+    else:
+        eta_line = "<div class='c'>尚未計算</div>"
+
+    rev_rows = ""
+    for period in sorted(rev.get("by_period", {}), reverse=True)[:6]:
+        srcs = rev["by_period"][period]
+        cost = rev.get("cost_by_period", {}).get(period, 0)
+        total = sum(srcs.values())
+        net = total - cost
+        cls = "up" if net >= 0 else "down"
+        detail = "、".join(f"{k.replace('affiliate_','')} {v:,.0f}"
+                          for k, v in srcs.items())
+        rev_rows += f"""<tr>
+          <td>{period}<div class="sub">{detail}</div></td>
+          <td class="num">{total:,.0f}</td>
+          <td class="num">{cost:,.0f}</td>
+          <td class="num"><span class="{cls}">{net:,.0f}</span></td>
+        </tr>"""
+    if not rev_rows:
+        cost_only = rev.get("cost_by_period") or {}
+        if cost_only:
+            for p, c in sorted(cost_only.items(), reverse=True)[:6]:
+                rev_rows += (f'<tr><td>{p}<div class="sub">尚無收入</div></td>'
+                             f'<td class="num">0</td><td class="num">{c:,.0f}</td>'
+                             f'<td class="num"><span class="down">-{c:,.0f}</span></td></tr>')
+        else:
+            rev_rows = '<tr><td colspan="4" class="empty">尚無營收與成本記錄</td></tr>'
+
+    # ── 關鍵字機會 ──
+    kw_rows = ""
+    for k in d.get("keywords", []):
+        bar = int((k.get("opportunity") or 0) * 100)
+        kw_rows += f"""<tr>
+          <td class="ttl">{k['term'][:40]}
+            <div class="sub">{k.get('lang','')}</div></td>
+          <td><div class="bar-wrap"><div class="bar" style="width:{bar}%"></div></div></td>
+          <td class="num">{k.get('opportunity',0):.2f}</td>
+          <td class="num">{(k.get('top_median_views') or 0):,}</td>
+          <td class="num">{(k.get('top_median_subs') or 0):,}</td>
+        </tr>"""
+    if not kw_rows:
+        kw_rows = ('<tr><td colspan="5" class="empty">'
+                   '尚無關鍵字資料，月度檢討會產生</td></tr>')
+
+    comp_rows = ""
+    for c in d.get("competitors", []):
+        comp_rows += f"""<tr>
+          <td class="ttl">{(c.get('title') or '')[:30]}</td>
+          <td class="num">{(c.get('subs') or 0):,}</td>
+          <td class="num">{c.get('recent_uploads', 0)}</td>
+          <td class="num">{(c.get('avg_recent_views') or 0):,}</td>
+        </tr>"""
+    if not comp_rows:
+        comp_rows = '<tr><td colspan="4" class="empty">尚無競品資料</td></tr>'
 
     return f"""<!DOCTYPE html>
 <html lang="zh-Hant"><head><meta charset="utf-8">
@@ -474,6 +569,53 @@ li.ok{{color:var(--up)}}
   <div class="note">差異化不足是最需要警覺的項目。
     YouTube 對大量製造、彼此高度相似的內容審查趨嚴，
     一旦被判定為重複內容會直接影響營利資格。</div>
+</section>
+
+<section>
+  <h2>獲利路徑</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="k">照目前速度達到 YPP</div>
+      {eta_line}</div>
+    <div class="kpi"><div class="k">每日新增訂閱</div>
+      <div class="v">{rate.get('subs_per_day', 0)}</div>
+      <div class="c">近 {rate.get('days', 0)} 天平均</div></div>
+    <div class="kpi"><div class="k">每日新增觀看時數</div>
+      <div class="v">{rate.get('hours_per_day', 0)}</div>
+      <div class="c">近 {rate.get('days', 0)} 天平均</div></div>
+  </div>
+  <h4>營收與成本（新台幣）</h4>
+  <table><thead><tr>
+    <th>月份</th><th class="num">收入</th>
+    <th class="num">成本</th><th class="num">淨額</th>
+  </tr></thead><tbody>{rev_rows}</tbody></table>
+  <div class="note">
+    廣告分潤需先達 1,000 訂閱與 12 個月內 4,000 小時公開觀看。
+    聯盟行銷無門檻但需要流量，成效數字請從各平台後台抄回，
+    用 <code>cp_revenue.py --record</code> 記錄。
+    成本以匯率 32 粗估，僅供趨勢參考。
+  </div>
+</section>
+
+<section>
+  <h2>關鍵字機會</h2>
+  <table><thead><tr>
+    <th>關鍵字</th><th style="width:120px">機會</th>
+    <th class="num">分數</th><th class="num">中位觀看</th>
+    <th class="num">中位訂閱</th>
+  </tr></thead><tbody>{kw_rows}</tbody></table>
+  <div class="note">
+    機會分數綜合三項：搜尋建議排名（需求）、前排影片觀看數（可及性）、
+    競爭頻道訂閱規模（門檻）。分數高代表有人在搜、但還沒被大頻道佔滿。
+    這是啟發式排序，不是精確預測 —— 沒有真實搜尋量數據可用。
+  </div>
+</section>
+
+<section>
+  <h2>競品動態</h2>
+  <table><thead><tr>
+    <th>頻道</th><th class="num">訂閱數</th>
+    <th class="num">近 30 天上片</th><th class="num">近期均觀看</th>
+  </tr></thead><tbody>{comp_rows}</tbody></table>
 </section>
 
 <section>
