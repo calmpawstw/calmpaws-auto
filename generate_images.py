@@ -63,6 +63,36 @@ class ImageGenerator:
         return paths
 
 
+# ── 縮圖風格（由 cp_patch.py 加入）──────────────────────────
+_THUMB_STYLE_PROMPTS = {
+    "big_text_closeup":
+        "extreme close-up of the pet's face filling the frame, "
+        "shallow depth of field, bold high-contrast lighting, "
+        "large empty area on the left for text overlay",
+    "minimal_illust":
+        "flat vector illustration style, minimal shapes, "
+        "limited pastel palette, lots of negative space, "
+        "clean modern graphic design, no photorealism",
+    "realistic_sleep":
+        "photorealistic sleeping pet in dim warm bedroom light, "
+        "cozy blankets, soft shadows, intimate night atmosphere",
+    "split_beforeafter":
+        "split composition, left side anxious tense pet in cool blue tones, "
+        "right side same pet relaxed in warm golden tones, "
+        "clear vertical divider in the middle",
+}
+
+
+def _thumb_style_suffix(scene: dict) -> str:
+    """回傳風格對應的 prompt 片段，沒指定就回空字串"""
+    style = scene.get("_thumb_style")
+    if not style:
+        return ""
+    frag = _THUMB_STYLE_PROMPTS.get(style, "")
+    return (", " + frag) if frag else ""
+# ── 加入結束 ────────────────────────────────────────────────
+
+
 def generate_youtube_thumbnail(
     scene: dict,
     config: dict,
@@ -86,7 +116,7 @@ def generate_youtube_thumbnail(
         ", youtube thumbnail style, vibrant but calm colors, "
         "professional photography, highly detailed, golden hour lighting, "
         "Taiwan aesthetic, no text, no watermark"
-    )
+     + _thumb_style_suffix(scene))
 
     img_bytes_list = generator.generate(
         prompt=thumbnail_prompt,
@@ -226,7 +256,7 @@ def generate_all_images(scene: dict, config: dict, assets_dir: Path, dry_run: bo
         if not dry_run:
             raise ValueError("請在 config.yaml 設定 Replicate API token")
         logger.info("DRY RUN：使用佔位圖像，不呼叫 Replicate")
-        thumbnail_path = assets_dir / "images" / f"{scene['id']}_thumbnail.png"
+        thumbnail_path = assets_dir / "images" / f"{scene['id']}{'_' + scene['_thumb_style'] if scene.get('_thumb_style') else ''}_thumbnail.png"
         if not thumbnail_path.exists():
             _create_placeholder_image(thumbnail_path, 1280, 720, scene, config)
         reel_dir = assets_dir / "images" / scene["id"]
@@ -245,12 +275,12 @@ def generate_all_images(scene: dict, config: dict, assets_dir: Path, dry_run: bo
         thumbnail_path = generate_youtube_thumbnail(
             scene=scene,
             config=config,
-            output_path=assets_dir / "images" / f"{scene['id']}_thumbnail.png",
+            output_path=assets_dir / "images" / f"{scene['id']}{'_' + scene['_thumb_style'] if scene.get('_thumb_style') else ''}_thumbnail.png",
             generator=generator,
         )
     except Exception as e:
         logger.warning(f"Replicate 縮圖生成失敗（{type(e).__name__}），改用佔位縮圖")
-        thumbnail_path = assets_dir / "images" / f"{scene['id']}_thumbnail.png"
+        thumbnail_path = assets_dir / "images" / f"{scene['id']}{'_' + scene['_thumb_style'] if scene.get('_thumb_style') else ''}_thumbnail.png"
         if not thumbnail_path.exists():
             _create_placeholder_image(thumbnail_path, 1280, 720, scene, config)
 

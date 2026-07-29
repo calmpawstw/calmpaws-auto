@@ -1,0 +1,59 @@
+# 安寵 Calm Paws — 標題句型
+#
+# 每個場景四種句型，供優化引擎測試哪一種點閱率最好。
+# 全部手寫，不用程式自動生成 —— 中文句法自動接詞很容易產出
+# 「打雷放鞭炮不再怕怎麼辦？」這種讀不通的標題，
+# 而優化引擎會誤判成「這個句型不好」，實際上是模板寫壞了。
+#
+# 規則：
+#   {duration} 必填，會被替換成「8 小時」之類
+#   YouTube 標題上限 100 字元，中文約 50 字
+#   日後想改標題直接編輯這個檔案，重跑 套用優化修正.command
+
+separation_anxiety:
+  problem_first:  "狗狗一個人在家會怕嗎？分離焦慮舒緩音樂 {duration} 🐾｜安寵 Calm Paws"
+  scenario_first: "上班族不在家｜狗狗分離焦慮療癒音樂 {duration} 🐾｜安寵 Calm Paws"
+  outcome_first:  "讓狗狗安心等你回家｜分離焦慮療癒音樂 {duration} 🐾｜安寵 Calm Paws"
+  duration_first: "{duration} 不間斷陪伴｜狗狗分離焦慮療癒音樂 🐾｜安寵 Calm Paws"
+
+sleep:
+  problem_first:  "毛孩晚上睡不安穩？深夜安眠療癒音樂 {duration} 🌙｜安寵 Calm Paws"
+  scenario_first: "狗狗深夜安眠曲｜陪你的毛孩一起入睡 {duration} 🌙｜安寵 Calm Paws"
+  outcome_first:  "讓毛孩一夜好眠｜深層睡眠療癒音樂 {duration} 🌙｜安寵 Calm Paws"
+  duration_first: "{duration} 整夜播放｜毛孩深層睡眠音樂 🌙｜安寵 Calm Paws"
+
+relax:
+  problem_first:  "毛孩在家無聊躁動？日常放鬆背景音樂 {duration} ☀️｜安寵 Calm Paws"
+  scenario_first: "日常療癒｜讓毛孩隨時放鬆的背景音樂 {duration} ☀️｜安寵 Calm Paws"
+  outcome_first:  "讓毛孩整天保持平靜｜日常療癒背景音樂 {duration} ☀️｜安寵 Calm Paws"
+  duration_first: "{duration} 循環播放｜毛孩日常放鬆背景音樂 ☀️｜安寵 Calm Paws"
+
+vet_visit:
+  problem_first:  "帶毛孩看醫生總是抓不住？就醫緊張舒緩音樂 {duration} 🏥｜安寵 Calm Paws"
+  scenario_first: "帶毛孩去看醫生前｜緊張紓解音樂 {duration} 🏥｜安寵 Calm Paws"
+  outcome_first:  "讓毛孩看醫生不再發抖｜就醫緊張舒緩音樂 {duration} 🏥｜安寵 Calm Paws"
+  duration_first: "{duration} 就醫前陪伴｜毛孩緊張舒緩音樂 🏥｜安寵 Calm Paws"
+
+thunderstorm:
+  problem_first:  "打雷放鞭炮牠就發抖？抗噪安撫音樂 {duration} ⛈️｜安寵 Calm Paws"
+  scenario_first: "打雷放鞭炮不再怕｜狗狗抗噪安撫音樂 {duration} ⛈️｜安寵 Calm Paws"
+  outcome_first:  "讓毛孩不再怕巨大聲響｜遮蔽雷聲與煙火 {duration} ⛈️｜安寵 Calm Paws"
+  duration_first: "{duration} 持續遮蔽｜雷聲鞭炮抗噪安撫音樂 ⛈️｜安寵 Calm Paws"
+
+kitten_calm:
+  problem_first:  "幼貓幼犬夜裡一直叫？新環境安心音樂 {duration} 🐾｜安寵 Calm Paws"
+  scenario_first: "幼貓幼犬安心曲｜新環境適應陪伴音樂 {duration} 🐾｜安寵 Calm Paws"
+  outcome_first:  "讓幼貓幼犬安心入睡｜模擬母親心跳節奏 {duration} 🐾｜安寵 Calm Paws"
+  duration_first: "{duration} 整夜陪伴｜幼貓幼犬新環境安心音樂 🐾｜安寵 Calm Paws"
+
+senior_pet:
+  problem_first:  "老狗老貓晚上走來走去？夜間安穩療癒音樂 {duration} 🌙｜安寵 Calm Paws"
+  scenario_first: "高齡毛孩夜間安穩曲｜減少夜間躁動 {duration} 🌙｜安寵 Calm Paws"
+  outcome_first:  "讓高齡毛孩夜裡睡得安穩｜低頻療癒音樂 {duration} 🌙｜安寵 Calm Paws"
+  duration_first: "{duration} 整夜低頻陪伴｜高齡犬貓安穩音樂 🌙｜安寵 Calm Paws"
+
+car_travel:
+  problem_first:  "一上車就發抖喘氣？車程安撫音樂 {duration} 🚗｜安寵 Calm Paws"
+  scenario_first: "帶毛孩出門不緊張｜車程與外出籠安撫音樂 {duration} 🚗｜安寵 Calm Paws"
+  outcome_first:  "讓毛孩安穩度過車程｜遮蔽引擎與路噪 {duration} 🚗｜安寵 Calm Paws"
+  duration_first: "{duration} 車程陪伴｜毛孩外出安撫音樂 🚗｜安寵 Calm Paws"

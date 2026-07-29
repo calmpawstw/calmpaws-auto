@@ -53,6 +53,21 @@ def get_youtube_client(client_secrets_path: str):
     return build("youtube", "v3", credentials=creds)
 
 
+# ── 標題句型變體（由 cp_patch.py 加入）──────────────────────
+def _pick_title_template(scene: dict) -> str:
+    """
+    依優化引擎選定的句型挑標題模板。
+    scene["yt_title_variants"][formula] 存在就用它，
+    否則退回原本的 yt_title_template —— 保證永遠有標題可用。
+    """
+    formula = scene.get("_title_formula")
+    variants = scene.get("yt_title_variants") or {}
+    if formula and variants.get(formula):
+        return variants[formula]
+    return scene["yt_title_template"]
+# ── 加入結束 ────────────────────────────────────────────────
+
+
 def _build_metadata(scene: dict, config: dict, video_path: Path) -> dict:
     """根據場景設定建立 YouTube 影片 metadata"""
     yt_cfg = config.get("youtube", {})
@@ -67,7 +82,7 @@ def _build_metadata(scene: dict, config: dict, video_path: Path) -> dict:
         "#CalmPaws", "#432Hz", "#寵物睡眠", "#毛孩日常"
     ])
 
-    title = scene["yt_title_template"].format(duration=duration_str)
+    title = _pick_title_template(scene).format(duration=duration_str)
     description = scene["yt_description_template"].format(
         duration=duration_str,
         channel_url=channel_url,

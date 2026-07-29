@@ -287,6 +287,59 @@ def run_reply_pipeline(config: dict, dry_run: bool = False):
 
 # ── 入口點 ────────────────────────────────────────────────────────────────────
 
+# ── 優化引擎參數注入（由 cp_patch.py 加入）──────────────────
+def _load_cp_params() -> dict:
+    """
+    讀取優化引擎選定的參數。
+    來源優先序：scene_override.json > CP_* 環境變數。
+    兩者都沒有就回空 dict，行為與加裝前完全相同。
+    """
+    import json as _json
+    params = {}
+
+    override = BASE_DIR / "scene_override.json"
+    if override.exists():
+        try:
+            params.update(_json.loads(override.read_text(encoding="utf-8")))
+        except Exception:
+            pass
+
+    for key in ("scene", "title_formula", "thumb_style",
+                "duration_h", "upload_slot", "reel_hook", "hashtag_set"):
+        env = os.environ.get(f"CP_{key.upper()}")
+        if env and not params.get(key):
+            params[key] = env
+
+    return {k: v for k, v in params.items() if v and not k.startswith("_")}
+
+
+def _apply_cp_params(scene: dict, config: dict, params: dict, logger) -> tuple:
+    """把參數注入 scene 與 config。回傳 (scene, config)。"""
+    if not params:
+        return scene, config
+
+    scene = dict(scene)   # 不改動原本的 config["scenes"] 內容
+
+    if params.get("title_formula"):
+        scene["_title_formula"] = params["title_formula"]
+    if params.get("thumb_style"):
+        scene["_thumb_style"] = params["thumb_style"]
+
+    if params.get("duration_h"):
+        try:
+            h = float(params["duration_h"])
+            config.setdefault("youtube", {})["youtube_video_duration_hours"] = h
+            scene["_duration_h"] = h
+        except (TypeError, ValueError):
+            pass
+
+    logger.info(
+        "優化參數：" + "  ".join(
+            f"{k}={v}" for k, v in params.items() if k != "scene"))
+    return scene, config
+# ── 注入結束 ────────────────────────────────────────────────
+
+
 def main():
     parser = argparse.ArgumentParser(description="安寵 Calm Paws 自動化管線")
     parser.add_argument("--mode", choices=["youtube", "reel", "both", "reply"], default="both")
@@ -321,7 +374,11 @@ def main():
         return
 
     # 選擇場景
-    scene = select_scene(config, force_scene=args.scene)
+    _cp_params = _load_cp_params()
+    scene = select_scene(
+        config,
+        force_scene=args.scene or _cp_params.get('scene'))
+    scene, config = _apply_cp_params(scene, config, _cp_params, logger)
     logger.info(f"本次場景：{scene['name']} (ID: {scene['id']})")
 
     # 載入/建立狀態檔（支援斷點續跑）

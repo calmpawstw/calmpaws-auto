@@ -36,16 +36,43 @@ logger = logging.getLogger("cp_optimizer")
 # ══════════════════════════════════════════════════════════
 #  可調整的維度與選項（臂）
 # ══════════════════════════════════════════════════════════
+def load_scenes_from_config() -> list:
+    """
+    從 config.yaml 讀出實際存在的場景 ID。
+
+    絕對不能寫死。orchestrator 的 select_scene() 找不到指定 ID 時會
+    raise ValueError，整支流程當場中斷 —— 不是學到雜訊，是根本跑不完。
+    只要這裡跟 config.yaml 有任何一個字不一樣就會炸。
+    """
+    conf = BASE_DIR / "config.yaml"
+    if not conf.exists():
+        return []
+    try:
+        import re as _re
+        txt = conf.read_text(encoding="utf-8")
+        m = _re.search(r"^scenes:\s*$", txt, _re.M)
+        if not m:
+            return []
+        rest = txt[m.end():]
+        nxt = _re.search(r"^\w[\w_]*:", rest, _re.M)
+        block = rest[:nxt.start()] if nxt else rest
+        ids = _re.findall(r"^\s*-\s*id:\s*[\"']?([\w_-]+)[\"']?\s*$",
+                          block, _re.M)
+        return ids
+    except Exception:
+        return []
+
+
+# 場景以 config.yaml 為準；讀不到才退回這份預設
+_CONFIG_SCENES = load_scenes_from_config()
+
 DIMENSIONS = {
     # ── YouTube 長片 ──
-    "scene": [
-        "separation_anxiety",   # 分離焦慮
-        "sleep_night",          # 夜間助眠
-        "thunderstorm",         # 打雷煙火安撫
-        "vet_visit",            # 就醫緊張
-        "kitten_calm",          # 幼貓安定
-        "senior_pet",           # 高齡犬貓
-        "car_travel",           # 車程焦慮
+    "scene": _CONFIG_SCENES or [
+        "separation_anxiety",
+        "sleep",
+        "relax",
+        "vet_visit",
     ],
     "title_formula": [
         "problem_first",   # 狗狗分離焦慮？8小時舒緩音樂
@@ -83,7 +110,40 @@ MIN_DIFF_DIMS = 2           # 與近期影片至少要差幾個維度
 
 
 def db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+    """
+    連線並確保資料表存在。
+
+    不能只做 connect —— 全新環境（首次安裝、雲端 runner 上資料庫
+    還沒建立）會直接 no such table: arms。schema 定義在 cp_analytics，
+    這裡沿用同一份，避免兩邊定義漂移。
+    """
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        sys.path.insert(0, str(BASE_DIR))
+        from cp_analytics import SCHEMA
+        conn = sqlite3.connect(DB_PATH)
+        conn.executescript(SCHEMA)
+    except Exception:
+        # cp_analytics 不在時，至少把本模組會用到的表建起來
+        conn = sqlite3.connect(DB_PATH)
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS arms (
+                dimension TEXT, value TEXT,
+                alpha REAL DEFAULT 1.0, beta REAL DEFAULT 1.0,
+                n INTEGER DEFAULT 0, sum_reward REAL DEFAULT 0,
+                active INTEGER DEFAULT 1, updated_at TEXT,
+                PRIMARY KEY (dimension, value));
+            CREATE TABLE IF NOT EXISTS decisions (
+                ts TEXT, dimension TEXT, action TEXT,
+                detail TEXT, auto_applied INTEGER DEFAULT 0);
+            CREATE TABLE IF NOT EXISTS policy_flags (
+                ts TEXT, severity TEXT, kind TEXT, detail TEXT);
+            CREATE TABLE IF NOT EXISTS videos (
+                video_id TEXT PRIMARY KEY, published_at TEXT, title TEXT,
+                scene TEXT, title_formula TEXT, thumb_style TEXT,
+                duration_h REAL, upload_slot TEXT, music_sig TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP);
+        """)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -106,7 +166,13 @@ def norm(dim: str, val) -> str:
 
 
 def ensure_arms(conn):
-    """把所有維度的臂寫進 DB（若不存在）"""
+    """
+    把所有維度的臂寫進 DB，並停用已經不存在的臂。
+
+    停用那步很重要：DB 裡可能殘留舊版本寫死的場景 ID
+    （例如 config.yaml 沒有的 thunderstorm）。這些臂若還是 active，
+    Thompson Sampling 仍會抽到，抽中就讓整支流程 ValueError。
+    """
     now = dt.datetime.now().isoformat()
     for dim, vals in DIMENSIONS.items():
         for v in vals:
@@ -116,6 +182,27 @@ def ensure_arms(conn):
                    VALUES (?,?,1.0,1.0,0,0,1,?)""",
                 (dim, v, now),
             )
+        # 停用不在清單內的臂
+        placeholders = ",".join("?" * len(vals)) if vals else "''"
+        stale = conn.execute(
+            f"""SELECT value FROM arms
+                WHERE dimension=? AND active=1
+                  AND value NOT IN ({placeholders})""",
+            (dim, *vals),
+        ).fetchall()
+        for s in stale:
+            conn.execute(
+                "UPDATE arms SET active=0, updated_at=? "
+                "WHERE dimension=? AND value=?",
+                (now, dim, s["value"]),
+            )
+            conn.execute(
+                "INSERT INTO decisions (ts, dimension, action, detail, auto_applied) "
+                "VALUES (?,?,?,?,1)",
+                (now, dim, "停用失效選項",
+                 f"{s['value']} 已不存在於 config.yaml，抽中會導致流程中斷"),
+            )
+            logger.warning(f"停用失效的 {dim}={s['value']}")
     conn.commit()
 
 
