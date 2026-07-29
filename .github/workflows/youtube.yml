@@ -1,0 +1,110 @@
+name: YouTube 長片
+
+on:
+  schedule:
+    # 台灣時間 週一 08:00 / 週三 20:00 / 週六 10:00
+    - cron: "0 0 * * 1"
+    - cron: "0 12 * * 3"
+    - cron: "0 2 * * 6"
+  workflow_dispatch:
+    inputs:
+      scene:
+        description: "指定主題（留空則由優化引擎決定）"
+        required: false
+        type: string
+
+concurrency:
+  group: calmpaws-content
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180   # 8 小時影片編碼 + 上傳需要時間
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安裝相依套件
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          pip install -q -r requirements.txt
+
+      - name: 檢查磁碟空間
+        run: |
+          df -h /
+          # 8 小時 1080p 影片約 700MB～1.5GB，runner 有 14GB 可用，足夠
+
+      - name: 由 Secrets 產生設定檔
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          YT_TOKEN_JSON: ${{ secrets.YT_TOKEN_JSON }}
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+        run: python cloud_publish.py --build-config
+
+      - name: 優化引擎挑選本次參數
+        id: pick
+        env:
+          FORCE_SCENE: ${{ inputs.scene }}
+        run: |
+          mkdir -p data
+          python cp_optimizer.py --pick youtube > /tmp/cfg.json
+          cat /tmp/cfg.json
+          python - << 'PY' >> $GITHUB_OUTPUT
+          import json, os
+          d = json.load(open('/tmp/cfg.json'))
+          forced = os.environ.get('FORCE_SCENE', '').strip()
+          if forced:
+              d['scene'] = forced
+          for k in ('scene', 'title_formula', 'thumb_style',
+                    'duration_h', 'upload_slot'):
+              print(f"{k}={d.get(k, '')}")
+          PY
+
+      - name: 產生並上傳長片
+        id: gen
+        run: |
+          python cp_generate.py --mode youtube \
+            --scene       "${{ steps.pick.outputs.scene }}" \
+            --title-formula "${{ steps.pick.outputs.title_formula }}" \
+            --thumb-style "${{ steps.pick.outputs.thumb_style }}" \
+            --duration-h  "${{ steps.pick.outputs.duration_h }}" \
+            --upload-slot "${{ steps.pick.outputs.upload_slot }}" \
+            | tee /tmp/out.log
+          VID=$(grep -oE 'VIDEO_ID=[A-Za-z0-9_-]+' /tmp/out.log | tail -1 | cut -d= -f2)
+          echo "video_id=$VID" >> $GITHUB_OUTPUT
+          echo "已上傳：https://youtu.be/$VID"
+
+      - name: 回寫狀態資料庫
+        if: always()
+        run: |
+          chmod +x git_push.sh
+          ./git_push.sh "chore: 新增影片 ${{ steps.gen.outputs.video_id }}" data/metrics.db
+
+      - name: 失敗時建立 Issue 通知
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "⚠️ YouTube 長片產出失敗 $(date -u +%Y-%m-%d)" \
+            --body "Workflow 執行失敗，請查看 [執行紀錄](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})。
+
+          參數：
+          - 主題：${{ steps.pick.outputs.scene }}
+          - 標題公式：${{ steps.pick.outputs.title_formula }}
+          - 縮圖風格：${{ steps.pick.outputs.thumb_style }}
+          - 長度：${{ steps.pick.outputs.duration_h }} 小時" \
+            --label "自動化失敗" || true

@@ -1,0 +1,119 @@
+name: Instagram Reel
+
+on:
+  schedule:
+    # 每日台灣時間 19:00（UTC 11:00）
+    - cron: "0 11 * * *"
+  workflow_dispatch:
+
+# 同時只跑一個，避免兩個 job 同時改 metrics.db 造成衝突
+concurrency:
+  group: calmpaws-content
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安裝相依套件
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          pip install -q -r requirements.txt
+
+      - name: 由 Secrets 產生設定檔
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          YT_TOKEN_JSON: ${{ secrets.YT_TOKEN_JSON }}
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+        run: python cloud_publish.py --build-config
+
+      - name: 優化引擎挑選本次參數
+        id: pick
+        run: |
+          mkdir -p data
+          CFG=$(python cp_optimizer.py --pick reel)
+          echo "設定：$CFG"
+          echo "scene=$(echo "$CFG" | python -c 'import sys,json;print(json.load(sys.stdin).get("scene",""))')" >> $GITHUB_OUTPUT
+          echo "hook=$(echo "$CFG" | python -c 'import sys,json;print(json.load(sys.stdin).get("reel_hook",""))')" >> $GITHUB_OUTPUT
+          echo "tags=$(echo "$CFG" | python -c 'import sys,json;print(json.load(sys.stdin).get("hashtag_set",""))')" >> $GITHUB_OUTPUT
+
+      - name: 產生 Reel 影片
+        run: |
+          python cp_generate.py --mode reel --scene "${{ steps.pick.outputs.scene }}"
+          ls -la output/
+
+      - name: 轉檔為 Instagram 規格
+        run: |
+          SRC=$(ls -S output/*reel*.mp4 2>/dev/null | grep -v _ig_upload | head -1)
+          if [ -z "$SRC" ]; then echo "❌ 找不到 Reel 影片"; exit 1; fi
+          echo "來源：$SRC"
+          ffmpeg -y -i "$SRC" \
+            -c:v libx264 -profile:v high -level 4.0 -pix_fmt yuv420p \
+            -vf "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=black" \
+            -r 30 -g 60 -c:a aac -b:a 128k -ar 44100 -ac 2 \
+            -movflags +faststart -t 59 \
+            output/_ig_upload.mp4
+          ls -lh output/_ig_upload.mp4
+
+      - name: 上傳為 Release 附件取得公開網址
+        id: asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="reel-$(date -u +%Y%m%d-%H%M%S)"
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "Instagram Reel 暫存檔，7 天後自動清除" \
+            --latest=false
+          gh release upload "$TAG" output/_ig_upload.mp4
+          URL="${{ github.server_url }}/${{ github.repository }}/releases/download/${TAG}/_ig_upload.mp4"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "公開網址：$URL"
+
+      - name: 發佈到 Instagram
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: |
+          python cloud_publish.py \
+            --url "${{ steps.asset.outputs.url }}" \
+            --scene "${{ steps.pick.outputs.scene }}" \
+            --hook "${{ steps.pick.outputs.hook }}" \
+            --hashtag-set "${{ steps.pick.outputs.tags }}"
+
+      - name: 回寫狀態資料庫
+        if: always()
+        run: |
+          chmod +x git_push.sh
+          ./git_push.sh "chore: 更新 Reel 記錄" data/metrics.db
+
+      - name: 清除 7 天前的暫存 Release
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CUTOFF=$(date -u -d '7 days ago' +%Y%m%d)
+          gh release list --limit 100 --json tagName --jq '.[].tagName' \
+            | grep '^reel-' | while read tag; do
+              d=$(echo "$tag" | sed 's/reel-\([0-9]\{8\}\).*/\1/')
+              if [ "$d" -lt "$CUTOFF" ] 2>/dev/null; then
+                gh release delete "$tag" --yes --cleanup-tag && echo "已刪除 $tag"
+              fi
+            done || true

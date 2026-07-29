@@ -1,0 +1,9 @@
+config.yaml
+token.json
+client_secret*.json
+.ig_login.env
+output/*.mp4
+output/*.mp3
+*.pyc
+__pycache__/
+venv/
