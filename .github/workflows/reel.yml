@@ -33,7 +33,7 @@ jobs:
       - name: 安裝相依套件
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
           pip install -q -r requirements.txt
 
       - name: 由 Secrets 產生設定檔

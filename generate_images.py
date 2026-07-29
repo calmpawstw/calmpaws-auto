@@ -3,6 +3,7 @@
 安寵 Calm Paws — 圖像生成模組
 使用 Replicate Flux Schnell 生成療癒寵物圖像（YouTube縮圖 + Reels背景）
 """
+from __future__ import annotations  # 讓 `str | None` 這類寫法在 Python 3.9 也能用
 
 import os
 import time
@@ -19,6 +20,35 @@ logger = logging.getLogger(__name__)
 FLUX_SCHNELL_MODEL = "black-forest-labs/flux-schnell"
 # Flux Dev（品質更高，用於YouTube縮圖）
 FLUX_DEV_MODEL = "black-forest-labs/flux-dev"
+
+# 中文字型候選路徑：依序嘗試，第一個存在的檔案就用。
+# macOS 本機用 PingFang；雲端 runner（Ubuntu）用 apt 裝的 Noto Sans CJK
+# （workflow 的「安裝相依套件」步驟會先 apt-get install fonts-noto-cjk）。
+# 之前這裡只寫死 PingFang 的路徑，雲端上該檔案不存在，PIL 會悄悄退回
+# ImageFont.load_default()——那是不支援中文字元的點陣字型，中文字會變成
+# 一格一格的方塊（tofu），而且尺寸固定很小，這就是貼文文字亂碼又過小的原因。
+_FONT_CANDIDATES = [
+    "/System/Library/Fonts/PingFang.ttc",                                  # macOS
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",                 # Ubuntu (fonts-noto-cjk)
+    "/usr/share/fonts/opentype/noto/NotoSansCJKtc-Bold.otf",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSerifCJK-Bold.ttc",                # fallback：至少能顯示中文
+]
+
+
+def _resolve_font_path(config: dict) -> str | None:
+    """回傳第一個實際存在的中文字型路徑；都找不到回傳 None。"""
+    configured = config.get("youtube", {}).get("thumbnail_font")
+    candidates = ([configured] if configured else []) + _FONT_CANDIDATES
+    for path in candidates:
+        if path and Path(path).exists():
+            return path
+    logger.error(
+        "找不到任何中文字型（試過：%s）。文字疊加會用 PIL 內建字型，"
+        "中文字元會顯示為方塊。雲端環境請確認 workflow 已安裝 fonts-noto-cjk。",
+        ", ".join(c for c in candidates if c),
+    )
+    return None
 
 
 class ImageGenerator:
@@ -63,36 +93,6 @@ class ImageGenerator:
         return paths
 
 
-# ── 縮圖風格（由 cp_patch.py 加入）──────────────────────────
-_THUMB_STYLE_PROMPTS = {
-    "big_text_closeup":
-        "extreme close-up of the pet's face filling the frame, "
-        "shallow depth of field, bold high-contrast lighting, "
-        "large empty area on the left for text overlay",
-    "minimal_illust":
-        "flat vector illustration style, minimal shapes, "
-        "limited pastel palette, lots of negative space, "
-        "clean modern graphic design, no photorealism",
-    "realistic_sleep":
-        "photorealistic sleeping pet in dim warm bedroom light, "
-        "cozy blankets, soft shadows, intimate night atmosphere",
-    "split_beforeafter":
-        "split composition, left side anxious tense pet in cool blue tones, "
-        "right side same pet relaxed in warm golden tones, "
-        "clear vertical divider in the middle",
-}
-
-
-def _thumb_style_suffix(scene: dict) -> str:
-    """回傳風格對應的 prompt 片段，沒指定就回空字串"""
-    style = scene.get("_thumb_style")
-    if not style:
-        return ""
-    frag = _THUMB_STYLE_PROMPTS.get(style, "")
-    return (", " + frag) if frag else ""
-# ── 加入結束 ────────────────────────────────────────────────
-
-
 def generate_youtube_thumbnail(
     scene: dict,
     config: dict,
@@ -116,7 +116,7 @@ def generate_youtube_thumbnail(
         ", youtube thumbnail style, vibrant but calm colors, "
         "professional photography, highly detailed, golden hour lighting, "
         "Taiwan aesthetic, no text, no watermark"
-     + _thumb_style_suffix(scene))
+    )
 
     img_bytes_list = generator.generate(
         prompt=thumbnail_prompt,
@@ -208,10 +208,12 @@ def _add_thumbnail_overlay(img: Image.Image, scene: dict, config: dict) -> Image
     draw = ImageDraw.Draw(img)
 
     # 嘗試載入中文字型
-    font_path = config["youtube"].get("thumbnail_font", "/System/Library/Fonts/PingFang.ttc")
+    font_path = _resolve_font_path(config)
     try:
-        font_brand = ImageFont.truetype(font_path, 22)
-        font_tagline = ImageFont.truetype(font_path, 14)
+        if not font_path:
+            raise OSError("no CJK font available")
+        font_brand = ImageFont.truetype(font_path, 26)
+        font_tagline = ImageFont.truetype(font_path, 16)
     except Exception:
         font_brand = ImageFont.load_default()
         font_tagline = font_brand
@@ -231,13 +233,20 @@ def _create_placeholder_image(path: Path, width: int, height: int, scene: dict, 
     brand = config["brand"]["name"]
     scene_name = scene["name"]
     # 簡單的品牌文字
+    font_path = _resolve_font_path(config)
+    font_size = max(28, min(64, height // 24))
     try:
-        font_path = config["youtube"].get("thumbnail_font", "/System/Library/Fonts/PingFang.ttc")
-        font = ImageFont.truetype(font_path, max(20, height // 20))
+        if not font_path:
+            raise OSError("no CJK font available")
+        font = ImageFont.truetype(font_path, font_size)
     except Exception:
         font = ImageFont.load_default()
-    draw.text((width // 2 - 100, height // 2 - 30), brand, fill=(50, 50, 80), font=font)
-    draw.text((width // 2 - 100, height // 2 + 10), scene_name, fill=(80, 80, 100), font=font)
+        font_size = 11  # PIL 內建字型的實際高度，用來算行距
+        logger.warning("佔位圖無可用中文字型，文字可能無法正確顯示：%s", path)
+    # 用 anchor="mm" 置中，行距依字型大小縮放，避免兩行文字疊在一起
+    line_gap = int(font_size * 0.75)
+    draw.text((width // 2, height // 2 - line_gap), brand, fill=(50, 50, 80), font=font, anchor="mm")
+    draw.text((width // 2, height // 2 + line_gap), scene_name, fill=(80, 80, 100), font=font, anchor="mm")
     img.save(path, "PNG")
     logger.info(f"佔位圖已建立：{path}")
 
@@ -256,7 +265,7 @@ def generate_all_images(scene: dict, config: dict, assets_dir: Path, dry_run: bo
         if not dry_run:
             raise ValueError("請在 config.yaml 設定 Replicate API token")
         logger.info("DRY RUN：使用佔位圖像，不呼叫 Replicate")
-        thumbnail_path = assets_dir / "images" / f"{scene['id']}{'_' + scene['_thumb_style'] if scene.get('_thumb_style') else ''}_thumbnail.png"
+        thumbnail_path = assets_dir / "images" / f"{scene['id']}_thumbnail.png"
         if not thumbnail_path.exists():
             _create_placeholder_image(thumbnail_path, 1280, 720, scene, config)
         reel_dir = assets_dir / "images" / scene["id"]
@@ -275,12 +284,12 @@ def generate_all_images(scene: dict, config: dict, assets_dir: Path, dry_run: bo
         thumbnail_path = generate_youtube_thumbnail(
             scene=scene,
             config=config,
-            output_path=assets_dir / "images" / f"{scene['id']}{'_' + scene['_thumb_style'] if scene.get('_thumb_style') else ''}_thumbnail.png",
+            output_path=assets_dir / "images" / f"{scene['id']}_thumbnail.png",
             generator=generator,
         )
     except Exception as e:
         logger.warning(f"Replicate 縮圖生成失敗（{type(e).__name__}），改用佔位縮圖")
-        thumbnail_path = assets_dir / "images" / f"{scene['id']}{'_' + scene['_thumb_style'] if scene.get('_thumb_style') else ''}_thumbnail.png"
+        thumbnail_path = assets_dir / "images" / f"{scene['id']}_thumbnail.png"
         if not thumbnail_path.exists():
             _create_placeholder_image(thumbnail_path, 1280, 720, scene, config)
 
