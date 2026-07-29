@@ -23,6 +23,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      CP_HOME: ${{ github.workspace }}
     timeout-minutes: 180   # 8 小時影片編碼 + 上傳需要時間
 
     steps:

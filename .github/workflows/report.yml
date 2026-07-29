@@ -21,6 +21,8 @@ permissions:
 jobs:
   report:
     runs-on: ubuntu-latest
+    env:
+      CP_HOME: ${{ github.workspace }}
     timeout-minutes: 20
 
     steps:
@@ -50,8 +52,6 @@ jobs:
         run: python cp_optimizer.py --update | tee /tmp/opt.json
 
       - name: 產生報告
-        env:
-          CP_HOME: ${{ github.workspace }}
         run: python cp_report.py --no-open
 
       - name: 準備 GitHub Pages 內容

@@ -27,7 +27,8 @@ import argparse
 import datetime as dt
 from pathlib import Path
 
-BASE_DIR = Path(os.path.expanduser("~/calm_paws"))
+# 本機跑在 ~/calm_paws，GitHub Actions 跑在 workspace 目錄
+BASE_DIR = Path(os.environ.get("CP_HOME") or os.path.expanduser("~/calm_paws"))
 DB_PATH = BASE_DIR / "data" / "metrics.db"
 
 logger = logging.getLogger("cp_optimizer")

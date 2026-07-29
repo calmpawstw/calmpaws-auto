@@ -16,6 +16,8 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
+    env:
+      CP_HOME: ${{ github.workspace }}
     timeout-minutes: 20
 
     steps:
@@ -37,8 +39,6 @@ jobs:
         run: python cloud_publish.py --build-config
 
       - name: 收集數據
-        env:
-          CP_HOME: ${{ github.workspace }}
         run: |
           mkdir -p data
           python cp_analytics.py --backfill 3

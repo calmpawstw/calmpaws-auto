@@ -20,7 +20,9 @@ from pathlib import Path
 
 import yaml
 
-BASE_DIR = Path(os.path.expanduser("~/calm_paws"))
+# 本機跑在 ~/calm_paws，GitHub Actions 跑在 workspace 目錄。
+# 用 CP_HOME 環境變數切換，沒設就沿用本機路徑。
+BASE_DIR = Path(os.environ.get("CP_HOME") or os.path.expanduser("~/calm_paws"))
 DB_PATH = BASE_DIR / "data" / "metrics.db"
 CONF_PATH = BASE_DIR / "config.yaml"
 IG_API = "https://graph.instagram.com/v21.0"
@@ -148,8 +150,45 @@ def db() -> sqlite3.Connection:
 
 
 def load_config() -> dict:
-    with open(CONF_PATH, encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    """讀設定檔。雲端上若尚未產生就回空 dict，不要讓整個流程掛掉。"""
+    if not CONF_PATH.exists():
+        logger.warning(f"找不到 {CONF_PATH}，使用空設定")
+        return {}
+    try:
+        with open(CONF_PATH, encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    except Exception as e:
+        logger.warning(f"讀取設定失敗：{e}")
+        return {}
+
+
+ANALYTICS_SCOPE = "https://www.googleapis.com/auth/yt-analytics.readonly"
+
+
+def check_token_scopes() -> tuple:
+    """
+    檢查 token.json 有沒有 Analytics 讀取權限。
+    只有上傳權限的 token 拿不到觀看時數與 CTR，優化引擎會沒有數據可學。
+    回傳 (是否足夠, 訊息)
+    """
+    p = BASE_DIR / "token.json"
+    if not p.exists():
+        return False, f"找不到 {p}"
+    try:
+        d = json.loads(p.read_text())
+    except Exception as e:
+        return False, f"token.json 解析失敗：{e}"
+
+    scopes = d.get("scopes") or []
+    if ANALYTICS_SCOPE in scopes:
+        return True, "Token 權限完整"
+    return False, (
+        "Token 缺少 yt-analytics.readonly 權限。\n"
+        "      目前權限：" + (", ".join(scopes) or "（無記錄）") + "\n"
+        "      影響：拿不到觀看時數、CTR、留存率，優化引擎沒有數據可學。\n"
+        "      解法：在 Mac 上執行 修復雲端.command，\n"
+        "            它會重新授權並自動更新 GitHub Secret YT_TOKEN_JSON。"
+    )
 
 
 # ══════════════════════════════════════════════════════════
@@ -226,10 +265,10 @@ def yt_query(analytics_api, start: str, end: str, metrics: str,
         return None
 
 
-def collect_youtube(conn, days_back: int = 2):
+def collect_youtube(conn, days_back: int = 2) -> bool:
     data_api, analytics_api = youtube_clients()
     if not data_api or not analytics_api:
-        return
+        raise RuntimeError("YouTube 認證失敗，無法取得數據")
 
     today = dt.date.today()
     start = (today - dt.timedelta(days=days_back)).isoformat()
@@ -328,13 +367,14 @@ def collect_youtube(conn, days_back: int = 2):
         logger.info(f"影片 {vid}: {views} 次觀看, {round(mins/60,1)}h, CTR {ctr}%")
 
     conn.commit()
+    return True
 
 
-def sync_video_list(conn):
+def sync_video_list(conn) -> bool:
     """把頻道上還沒進 DB 的影片補進來"""
     data_api, _ = youtube_clients()
     if not data_api:
-        return
+        raise RuntimeError("YouTube 認證失敗，無法同步影片清單")
     try:
         ch = data_api.channels().list(part="contentDetails", mine=True).execute()
         uploads = ch["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
@@ -357,8 +397,9 @@ def sync_video_list(conn):
             if not page:
                 break
         conn.commit()
+        return True
     except Exception as e:
-        logger.warning(f"同步影片清單失敗：{e}")
+        raise RuntimeError(f"同步影片清單失敗：{e}")
 
 
 # ══════════════════════════════════════════════════════════
@@ -377,13 +418,12 @@ def ig_get(path: str, token: str, **params):
             return {"error": {"message": str(e)}}
 
 
-def collect_instagram(conn, config: dict):
+def collect_instagram(conn, config: dict) -> bool:
     keys = config.get("api_keys", {})
-    token = keys.get("instagram_access_token", "")
-    ig_id = keys.get("instagram_user_id", "")
+    token = keys.get("instagram_access_token", "") or os.environ.get("IG_ACCESS_TOKEN", "")
+    ig_id = keys.get("instagram_user_id", "") or os.environ.get("IG_USER_ID", "")
     if not token or token.startswith("YOUR_"):
-        logger.warning("Instagram token 未設定，跳過")
-        return
+        raise RuntimeError("Instagram token 未設定")
 
     today = dt.date.today().isoformat()
 
@@ -443,6 +483,9 @@ def collect_instagram(conn, config: dict):
         )
 
     conn.commit()
+    if "error" in media:
+        raise RuntimeError(f"Instagram API 錯誤：{media['error'].get('message')}")
+    return True
 
 
 # ══════════════════════════════════════════════════════════
@@ -450,6 +493,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--backfill", type=int, default=2,
                     help="回補天數（預設 2）")
+    ap.add_argument("--strict", action="store_true",
+                    help="任一來源失敗即回傳非零（預設容忍部分失敗）")
     args = ap.parse_args()
 
     logging.basicConfig(
@@ -457,19 +502,51 @@ def main():
         format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
     )
 
+    logger.info(f"工作目錄：{BASE_DIR}")
     conn = db()
     config = load_config()
 
-    logger.info("同步影片清單...")
-    sync_video_list(conn)
+    ok, msg = check_token_scopes()
+    if ok:
+        logger.info(f"✅ {msg}")
+    else:
+        logger.warning(f"⚠️  {msg}")
 
-    logger.info("收集 YouTube 數據...")
-    collect_youtube(conn, args.backfill)
+    results = {}
 
-    logger.info("收集 Instagram 數據...")
-    collect_instagram(conn, config)
+    # 每個來源獨立處理，一個掛掉不影響其他來源
+    for name, fn in (
+        ("同步影片清單", lambda: sync_video_list(conn)),
+        ("YouTube 數據", lambda: collect_youtube(conn, args.backfill)),
+        ("Instagram 數據", lambda: collect_instagram(conn, config)),
+    ):
+        logger.info(f"── {name} ──")
+        try:
+            fn()
+            results[name] = True
+        except Exception as e:
+            logger.error(f"{name} 失敗：{e}")
+            results[name] = False
 
+    # 摘要
+    counts = {}
+    for t in ("videos", "video_metrics", "reels", "reel_metrics", "channel_daily"):
+        try:
+            counts[t] = conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+        except Exception:
+            counts[t] = "?"
     conn.close()
+
+    logger.info("── 結果 ──")
+    for k, v in results.items():
+        logger.info(f"  {'✅' if v else '❌'} {k}")
+    logger.info(f"  資料庫：{counts}")
+
+    if not any(results.values()):
+        logger.error("所有來源都失敗")
+        sys.exit(1)
+    if args.strict and not all(results.values()):
+        sys.exit(1)
     logger.info("✅ 數據收集完成")
 
 
