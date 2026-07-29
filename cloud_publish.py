@@ -100,6 +100,47 @@ def build_config():
     if missing:
         logger.warning(f"⚠️  以下金鑰缺少對應 Secret：{', '.join(missing)}")
 
+    # 路徑改成相對於 workspace。
+    # 本機寫的是 ~/calm_paws/logs，在 runner 上會展開成
+    # /home/runner/calm_paws/logs —— 那個目錄不存在。
+    paths = cfg.get("paths") or {}
+    for k, v in list(paths.items()):
+        if not isinstance(v, str):
+            continue
+        nv = v.replace("~/calm_paws/", "").replace("~/calm_paws", ".")
+        paths[k] = nv
+
+        # paths 底下不一定都是目錄 —— existing_music 指向的是 .mp3 檔案。
+        # 對檔案路徑呼叫 mkdir 會 FileExistsError，
+        # 所以有副檔名就只建它的上層目錄。
+        p = Path(nv)
+        try:
+            if p.suffix:
+                p.parent.mkdir(parents=True, exist_ok=True)
+            else:
+                p.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            logger.warning(f"建立目錄 {nv} 失敗：{e}")
+    if paths:
+        cfg["paths"] = paths
+        logger.info(f"路徑已轉為相對（{len(paths)} 項）")
+
+    for k, v in list(cfg.items()):
+        if isinstance(v, str) and "~/calm_paws/" in v:
+            cfg[k] = v.replace("~/calm_paws/", "")
+
+    # 缺少關鍵區塊就直接中止，並說清楚原因。
+    # 讓它繼續跑只會在深處炸出 KeyError，難以判讀。
+    required = ["paths", "scenes", "youtube"]
+    absent = [k for k in required if not cfg.get(k)]
+    if absent:
+        logger.error(
+            f"❌ config 缺少必要區塊：{', '.join(absent)}\n"
+            f"   多半是 config.template.yaml 沒有正確產生。\n"
+            f"   請在 Mac 上執行 完成雲端.command，它會重新產生並推送。")
+        raise SystemExit(1)
+    logger.info(f"設定完整：{len(cfg.get('scenes', []))} 個場景")
+
     (BASE / "config.yaml").write_text(
         yaml.safe_dump(cfg, allow_unicode=True, sort_keys=False),
         encoding="utf-8")

@@ -1,0 +1,398 @@
+api_keys:
+  mureka: ''
+  replicate: ''
+  elevenlabs: ''
+  youtube_client_secrets: ''
+  instagram_access_token: ''
+  instagram_user_id: ''
+  anthropic: ''
+youtube:
+  channel_name: 安寵 Calm Paws
+  default_category_id: '10'
+  default_language: zh-TW
+  default_tags:
+  - 寵物音樂
+  - 狗狗放鬆
+  - 分離焦慮
+  - 寵物療癒
+  - calm paws
+  - 安寵
+  - 432Hz
+  - 寵物睡眠音樂
+  - dog relaxation music
+  - pet anxiety relief
+  thumbnail_font: /System/Library/Fonts/PingFang.ttc
+instagram:
+  hashtags_pool:
+  - '#寵物音樂'
+  - '#狗狗媽媽'
+  - '#毛孩日常'
+  - '#分離焦慮'
+  - '#寵物療癒'
+  - '#安寵'
+  - '#CalmPaws'
+  - '#狗狗'
+  - '#寵物'
+  - '#毛小孩'
+  - '#台灣狗狗'
+  - '#上班族毛孩'
+  - '#寵物睡眠'
+  - '#狗狗放鬆'
+  - '#療癒音樂'
+  hashtags_per_post: 12
+scenes:
+- id: separation_anxiety
+  name: 分離焦慮｜上班族不在家
+  weight: 3
+  music_prompt: 'Calming 432Hz binaural beats for dogs with separation anxiety, soft
+    piano with nature sounds, gentle and soothing, no sudden changes, Taiwan urban
+    pet atmosphere, 8 hours loop ready
+
+    '
+  image_prompt: 'A golden retriever sleeping peacefully on a cozy sofa in a modern
+    Taipei apartment, soft afternoon light through sheer curtains, warm beige tones,
+    ultra realistic, 8k, cinematic, no humans, calm atmosphere
+
+    '
+  yt_title_template: 上班族不在家｜狗狗分離焦慮療癒音樂 {duration} 🐾｜安寵 Calm Paws
+  yt_title_variants:
+    problem_first: 狗狗一個人在家會怕嗎？分離焦慮舒緩音樂 {duration} 🐾｜安寵 Calm Paws
+    scenario_first: 上班族不在家｜狗狗分離焦慮療癒音樂 {duration} 🐾｜安寵 Calm Paws
+    outcome_first: 讓狗狗安心等你回家｜分離焦慮療癒音樂 {duration} 🐾｜安寵 Calm Paws
+    duration_first: '{duration} 不間斷陪伴｜狗狗分離焦慮療癒音樂 🐾｜安寵 Calm Paws'
+  yt_description_template: '🐾 專為上班族毛孩設計的療癒音樂
+
+    當你不在家的時候，讓安寵陪伴你的毛寶貝度過每一個安心的時刻。
+
+
+    ✨ 432Hz 調頻 | 雙耳節拍 | 無廣告音效切換
+
+    🕐 全長 {duration}，適合整個工作日循環播放
+
+
+    📋 適用情境：
+
+    • 主人上班、外出時
+
+    • 新環境適應期
+
+    • 輕度分離焦慮
+
+
+    🎵 免費訂閱頻道，每週新增療癒音樂：{channel_url}
+
+
+    {hashtags}
+
+    '
+  reel_caption_template: '你上班的時候，牠在等你 🐾 這首音樂，讓牠安心等待 💛 「{brand_tagline}」 ▶ 完整版連結在限動
+
+    '
+- id: sleep
+  name: 睡眠｜深夜安眠曲
+  weight: 2
+  music_prompt: 'Deep sleep music for dogs and cats, 432Hz, delta waves, very slow
+    tempo, gentle rain sounds mixed with soft ambient, peaceful and drowsy feeling,
+    8 hours seamless loop
+
+    '
+  image_prompt: 'A sleeping Shiba Inu curled up on a soft bed with fairy lights in
+    background, night time cozy bedroom in Taiwan, very soft blue and warm gold tones,
+    ultra realistic, 8k, peaceful, no humans
+
+    '
+  yt_title_template: 狗狗深夜安眠曲｜陪你的毛孩一起入睡 {duration} 🌙｜安寵 Calm Paws
+  yt_title_variants:
+    problem_first: 毛孩晚上睡不安穩？深夜安眠療癒音樂 {duration} 🌙｜安寵 Calm Paws
+    scenario_first: 狗狗深夜安眠曲｜陪你的毛孩一起入睡 {duration} 🌙｜安寵 Calm Paws
+    outcome_first: 讓毛孩一夜好眠｜深層睡眠療癒音樂 {duration} 🌙｜安寵 Calm Paws
+    duration_first: '{duration} 整夜播放｜毛孩深層睡眠音樂 🌙｜安寵 Calm Paws'
+  yt_description_template: '🌙 深夜陪伴你的毛孩安然入睡
+
+    特調 432Hz + Delta 波，幫助毛孩快速進入深層睡眠。
+
+
+    ✨ 不含任何突發音效 | 全程恆定音量
+
+    🕐 全長 {duration}，適合整夜播放
+
+
+    🎵 訂閱頻道：{channel_url}
+
+    {hashtags}
+
+    '
+  reel_caption_template: '今晚，讓牠睡得更香 🌙 深夜療癒音樂，現在播放 💤 「{brand_tagline}」
+
+    '
+- id: relax
+  name: 放鬆｜日常療癒
+  weight: 2
+  music_prompt: 'Gentle relaxation music for pets, 432Hz tuning, soft nature ambiance,
+    birds chirping mixed with slow piano, cheerful yet calm, suitable for daytime
+    relaxation, Taiwan nature sounds
+
+    '
+  image_prompt: 'A happy Pomeranian sitting by a window watching birds outside in
+    a bright modern Taiwanese home, sunlight streaming in, pastel colors, ultra realistic,
+    8k, joyful and peaceful mood, no humans
+
+    '
+  yt_title_template: 日常療癒｜讓毛孩隨時放鬆的背景音樂 {duration} ☀️｜安寵 Calm Paws
+  yt_title_variants:
+    problem_first: 毛孩在家無聊躁動？日常放鬆背景音樂 {duration} ☀️｜安寵 Calm Paws
+    scenario_first: 日常療癒｜讓毛孩隨時放鬆的背景音樂 {duration} ☀️｜安寵 Calm Paws
+    outcome_first: 讓毛孩整天保持平靜｜日常療癒背景音樂 {duration} ☀️｜安寵 Calm Paws
+    duration_first: '{duration} 循環播放｜毛孩日常放鬆背景音樂 ☀️｜安寵 Calm Paws'
+  yt_description_template: '☀️ 讓毛孩的每一天都充滿療癒
+
+    輕柔的自然聲音，幫助毛孩保持平靜與快樂。
+
+
+    🎵 訂閱頻道：{channel_url}
+
+    {hashtags}
+
+    '
+  reel_caption_template: '牠今天也很乖 ☀️ 給牠一首歌，作為今天最好的獎勵 🎵 「{brand_tagline}」
+
+    '
+- id: vet_visit
+  name: 就醫前｜緊張紓解
+  weight: 1
+  music_prompt: 'Stress relief music for anxious dogs before vet visits, 432Hz, very
+    gentle and reassuring tones, slow heartbeat-like rhythm, calming and grounding,
+    short 3-hour version
+
+    '
+  image_prompt: 'A nervous but cute beagle being gently comforted, soft pastel veterinary
+    setting with plants and warm light, reassuring atmosphere, ultra realistic, no
+    harsh elements, gentle Taiwan vet clinic aesthetic
+
+    '
+  yt_title_template: 帶毛孩去看醫生前｜緊張紓解音樂 {duration} 🏥｜安寵 Calm Paws
+  yt_title_variants:
+    problem_first: 帶毛孩看醫生總是抓不住？就醫緊張舒緩音樂 {duration} 🏥｜安寵 Calm Paws
+    scenario_first: 帶毛孩去看醫生前｜緊張紓解音樂 {duration} 🏥｜安寵 Calm Paws
+    outcome_first: 讓毛孩看醫生不再發抖｜就醫緊張舒緩音樂 {duration} 🏥｜安寵 Calm Paws
+    duration_first: '{duration} 就醫前陪伴｜毛孩緊張舒緩音樂 🏥｜安寵 Calm Paws'
+  yt_description_template: '🏥 看診前的心理準備
+
+    專為就醫前焦慮設計，幫助毛孩在候診室保持平靜。
+
+
+    🎵 訂閱頻道：{channel_url}
+
+    {hashtags}
+
+    '
+  reel_caption_template: '去看醫生好緊張... 🏥 先聽這首歌，讓牠放輕鬆 💙 「{brand_tagline}」
+
+    '
+- id: thunderstorm
+  name: 雷雨鞭炮｜巨大聲響安撫
+  weight: 3
+  music_prompt: 'Sound masking music for dogs terrified of thunder and fireworks,
+    432Hz, continuous mid-low frequency drone to mask sudden loud noises, no dynamic
+    peaks at all, absolutely constant volume, warm cello and soft synth pad, deeply
+    grounding and protective feeling, 8 hours loop
+
+    '
+  image_prompt: 'A calm labrador resting safely inside a cozy blanket den in a Taiwanese
+    apartment, warm lamp light, rain streaks on the window in the background, soft
+    amber and deep blue tones, ultra realistic, 8k, feeling of shelter and safety,
+    no humans
+
+    '
+  yt_title_template: 打雷放鞭炮不再怕｜狗狗抗噪安撫音樂 {duration} ⛈️｜安寵 Calm Paws
+  yt_title_variants:
+    problem_first: 打雷放鞭炮牠就發抖？抗噪安撫音樂 {duration} ⛈️｜安寵 Calm Paws
+    scenario_first: 打雷放鞭炮不再怕｜狗狗抗噪安撫音樂 {duration} ⛈️｜安寵 Calm Paws
+    outcome_first: 讓毛孩不再怕巨大聲響｜遮蔽雷聲與煙火 {duration} ⛈️｜安寵 Calm Paws
+    duration_first: '{duration} 持續遮蔽｜雷聲鞭炮抗噪安撫音樂 ⛈️｜安寵 Calm Paws'
+  yt_description_template: "⛈️ 雷聲、鞭炮、煙火不再讓毛孩發抖\n以持續穩定的中低頻聲音遮蔽突發巨響，讓毛孩感覺被包覆保護。\n\n\
+    ✨ 全程零音量起伏 | 無突發音效 | 432Hz 調頻\n\U0001F550 全長 {duration}，適合整場雷雨或跨年夜播放\n\n\U0001F4CB\
+    \ 適用情境：\n• 夏季午後雷陣雨、颱風夜\n• 過年鞭炮、元宵廟會\n• 跨年與國慶煙火\n\n\U0001F4A1 使用建議：在聲響開始前 30 分鐘就播放，效果最好。\n\
+    \   音量調到能蓋過環境音但不刺耳的程度。\n\n\U0001F3B5 免費訂閱頻道，每週新增療癒音樂：{channel_url}\n\n{hashtags}\n"
+  reel_caption_template: '打雷的時候，牠躲在哪裡？⛈️ 這首音樂會蓋掉那些嚇人的聲音 🛡️ 「{brand_tagline}」 ▶ 完整版連結在限動
+
+    '
+- id: kitten_calm
+  name: 幼貓幼犬｜新環境適應
+  weight: 2
+  music_prompt: 'Gentle music for kittens and puppies adjusting to a new home, 432Hz,
+    very soft music box and warm strings, slow heartbeat-like rhythm mimicking mother
+    animal, tender and nurturing, extremely quiet dynamics, 8 hours seamless loop
+
+    '
+  image_prompt: 'A tiny grey kitten curled up asleep in a soft woven basket beside
+    a warm blanket, gentle morning light in a bright Taiwanese home, cream and pale
+    peach tones, ultra realistic, 8k, extremely tender and safe atmosphere, no humans
+
+    '
+  yt_title_template: 幼貓幼犬安心曲｜新環境適應陪伴音樂 {duration} 🐾｜安寵 Calm Paws
+  yt_title_variants:
+    problem_first: 幼貓幼犬夜裡一直叫？新環境安心音樂 {duration} 🐾｜安寵 Calm Paws
+    scenario_first: 幼貓幼犬安心曲｜新環境適應陪伴音樂 {duration} 🐾｜安寵 Calm Paws
+    outcome_first: 讓幼貓幼犬安心入睡｜模擬母親心跳節奏 {duration} 🐾｜安寵 Calm Paws
+    duration_first: '{duration} 整夜陪伴｜幼貓幼犬新環境安心音樂 🐾｜安寵 Calm Paws'
+  yt_description_template: '🐾 剛到新家的第一週，最需要安全感
+
+    模擬母親心跳節奏的溫柔旋律，陪伴幼貓幼犬度過適應期。
+
+
+    ✨ 心跳節奏設計 | 極輕柔音量 | 432Hz 調頻
+
+    🕐 全長 {duration}，適合整夜陪伴
+
+
+    📋 適用情境：
+
+    • 剛領養回家的頭幾天
+
+    • 離乳期夜間不安、頻繁呼叫
+
+    • 第一次獨自睡覺
+
+
+    💡 使用建議：放在睡窩附近，音量比說話聲再小一點。
+
+
+    🎵 訂閱頻道：{channel_url}
+
+
+    {hashtags}
+
+    '
+  reel_caption_template: '牠才剛到新家，什麼都陌生 🐾 用一首歌，讓牠知道這裡是安全的 💛 「{brand_tagline}」
+
+    '
+- id: senior_pet
+  name: 高齡犬貓｜夜間安穩
+  weight: 2
+  music_prompt: 'Soothing music for senior dogs and cats with cognitive decline and
+    night time restlessness, 432Hz, very slow tempo, warm low register piano and soft
+    ambient pad, no high frequencies, deeply reassuring and steady, 8 hours continuous
+    loop
+
+    '
+  image_prompt: 'An old golden retriever with grey muzzle sleeping peacefully on a
+    soft mat in a quiet Taiwanese living room at night, warm dim lamp, deep amber
+    and soft brown tones, ultra realistic, 8k, dignified and serene mood, no humans
+
+    '
+  yt_title_template: 高齡毛孩夜間安穩曲｜減少夜間躁動 {duration} 🌙｜安寵 Calm Paws
+  yt_title_variants:
+    problem_first: 老狗老貓晚上走來走去？夜間安穩療癒音樂 {duration} 🌙｜安寵 Calm Paws
+    scenario_first: 高齡毛孩夜間安穩曲｜減少夜間躁動 {duration} 🌙｜安寵 Calm Paws
+    outcome_first: 讓高齡毛孩夜裡睡得安穩｜低頻療癒音樂 {duration} 🌙｜安寵 Calm Paws
+    duration_first: '{duration} 整夜低頻陪伴｜高齡犬貓安穩音樂 🌙｜安寵 Calm Paws'
+  yt_description_template: "\U0001F319 陪伴年長毛孩度過每一個夜晚\n高齡犬貓常在夜間躁動、來回走動或吠叫。\n本曲以極慢節奏與低頻為主，避開高齡動物較敏感的高頻段。\n\
+    \n✨ 低頻為主 | 無高頻刺激 | 極緩節奏 | 432Hz\n\U0001F550 全長 {duration}，適合整夜播放\n\n\U0001F4CB\
+    \ 適用情境：\n• 夜間不安、來回踱步\n• 認知功能退化（犬貓失智）\n• 聽力退化後的焦慮\n\n⚠️ 音樂僅為輔助陪伴。若毛孩夜間躁動情況明顯或突然加劇，\n\
+    \   請諮詢獸醫師，這可能是疼痛或疾病的訊號。\n\n\U0001F3B5 訂閱頻道：{channel_url}\n\n{hashtags}\n"
+  reel_caption_template: '牠陪你走過這麼多年 🌙 現在換你，讓牠的夜晚安穩一點 💛 「{brand_tagline}」
+
+    '
+- id: car_travel
+  name: 外出移動｜車程與運輸籠
+  weight: 1
+  music_prompt: 'Calming travel music for pets in carriers and cars, 432Hz, steady
+    rhythmic pulse to mask engine vibration and road noise, warm mid-range tones,
+    consistent and predictable, reassuring, 3 hours loop
+
+    '
+  image_prompt: 'A calm corgi resting inside a comfortable pet carrier with soft bedding,
+    blurred window view of a Taiwanese road, warm afternoon light, muted green and
+    warm grey tones, ultra realistic, 8k, relaxed and secure feeling, no humans
+
+    '
+  yt_title_template: 帶毛孩出門不緊張｜車程與外出籠安撫音樂 {duration} 🚗｜安寵 Calm Paws
+  yt_title_variants:
+    problem_first: 一上車就發抖喘氣？車程安撫音樂 {duration} 🚗｜安寵 Calm Paws
+    scenario_first: 帶毛孩出門不緊張｜車程與外出籠安撫音樂 {duration} 🚗｜安寵 Calm Paws
+    outcome_first: 讓毛孩安穩度過車程｜遮蔽引擎與路噪 {duration} 🚗｜安寵 Calm Paws
+    duration_first: '{duration} 車程陪伴｜毛孩外出安撫音樂 🚗｜安寵 Calm Paws'
+  yt_description_template: '🚗 出門看醫生、回老家、搬家都適用
+
+    穩定的節奏設計可遮蔽引擎聲與路噪，降低移動中的不安。
+
+
+    ✨ 遮蔽引擎與路噪 | 節奏恆定可預期 | 432Hz
+
+    🕐 全長 {duration}，適合中長程車途
+
+
+    📋 適用情境：
+
+    • 開車帶毛孩外出
+
+    • 運輸籠內等待
+
+    • 搬家或長途移動
+
+
+    💡 使用建議：上車前就先播放，讓牠把音樂跟安全感連結起來。
+
+
+    🎵 訂閱頻道：{channel_url}
+
+
+    {hashtags}
+
+    '
+  reel_caption_template: '一上車就發抖、喘氣、叫不停？🚗 試試在出發前先播這首 🎵 「{brand_tagline}」
+
+    '
+schedule:
+  youtube_cron: 0 0 * * 1
+  youtube_video_duration_hours: 8
+  instagram_cron: 0 1 */2 * *
+  reels_duration_seconds: 60
+  comment_reply_cron: 0 */4 * * *
+brand:
+  name: 安寵 Calm Paws
+  tagline: 讓每隻毛孩，安心入眠
+  channel_url: https://www.youtube.com/@calmpaws
+  instagram_url: https://www.instagram.com/calmpaws.tw
+  voice_id: YOUR_ELEVENLABS_VOICE_ID
+  voice_style: Warm, gentle, caring, like a pet-loving friend
+  primary_color: '#B8860B'
+  accent_color: '#2F4F4F'
+paths:
+  base_dir: .
+  assets_dir: assets
+  music_dir: assets/music
+  images_dir: assets/images
+  voice_dir: assets/voice
+  video_dir: assets/video
+  output_dir: output
+  logs_dir: logs
+  existing_music: assets/music/mix_31m10s.mp3
+elevenlabs:
+  model_id: eleven_multilingual_v2
+  voice_settings:
+    stability: 0.75
+    similarity_boost: 0.8
+    style: 0.3
+    use_speaker_boost: true
+video:
+  youtube_resolution: 1920x1080
+  reels_resolution: 1080x1920
+  fps: 30
+  youtube_bitrate: 4000k
+  reels_bitrate: 8000k
+  thumbnail_width: 1280
+  thumbnail_height: 720
+comment_reply:
+  enabled: true
+  max_replies_per_run: 20
+  system_prompt: '你是安寵 Calm Paws 的客服，一位溫柔、充滿愛心的寵物音樂品牌代表。
+
+    用繁體中文回覆，語氣像一個懂毛孩的朋友，溫暖但不過度甜膩。
+
+    回覆要簡短（1-3句），真誠，偶爾加一個相關 emoji。
+
+    不要每次都用一樣的開頭。不要推銷，只是真心關心。
+
+    '

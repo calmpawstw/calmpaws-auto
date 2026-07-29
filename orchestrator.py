@@ -219,7 +219,17 @@ def run_reel_pipeline(scene: dict, config: dict, state: dict, dry_run: bool = Fa
     # ③ 語音旁白
     if not state.get("voice"):
         logger.info("③ 語音生成中...")
-        voice = generate_all_voice(scene, config, assets_dir)
+        # _cp_voice_optional：elevenlabs 金鑰為空時跳過旁白。
+        # 寵物舒緩音樂本來就不需要人聲，加了反而破壞放鬆感，
+        # 沒必要為此讓整支流程失敗。
+        try:
+            if not (config.get('api_keys', {}) or {}).get('elevenlabs'):
+                raise RuntimeError('elevenlabs 金鑰未設定')
+            voice = generate_all_voice(scene, config, assets_dir)
+        except Exception as _cp_ve:
+            logger.warning(f'跳過語音旁白：{_cp_ve}')
+            voice = {}
+
         state["voice"] = {k: str(v) for k, v in voice.items()}
     else:
         voice = {k: Path(v) for k, v in state["voice"].items()}
