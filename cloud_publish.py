@@ -35,6 +35,17 @@ logger = logging.getLogger("cloud_publish")
 # ══════════════════════════════════════════════════════════
 #  由環境變數組出 config.yaml（金鑰不進 repo）
 # ══════════════════════════════════════════════════════════
+# config.yaml 的欄位名 → GitHub Secret 名稱
+SECRET_ALIASES = {
+    "anthropic": "ANTHROPIC_API_KEY",
+    "replicate": "REPLICATE_API_TOKEN",
+    "elevenlabs": "ELEVENLABS_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "instagram_access_token": "IG_ACCESS_TOKEN",
+    "instagram_user_id": "IG_USER_ID",
+}
+
+
 def build_config():
     import yaml
 
@@ -45,16 +56,49 @@ def build_config():
         cfg = {}
 
     cfg.setdefault("api_keys", {})
-    env_map = {
-        "anthropic": "ANTHROPIC_API_KEY",
-        "replicate": "REPLICATE_API_TOKEN",
-        "instagram_access_token": "IG_ACCESS_TOKEN",
-        "instagram_user_id": "IG_USER_ID",
-    }
-    for key, env in env_map.items():
-        val = os.environ.get(env, "")
+
+    # workflow 會用 toJSON(secrets) 把所有 Secret 一次傳進來。
+    # 這樣日後新增 API 只要設好 Secret 就會自動生效，
+    # 不必回頭改每個 workflow 的 env 區塊 —— 漏改就是
+    # ModuleNotFoundError 或金鑰為空，而且要等實跑才會發現。
+    all_secrets = {}
+    raw = os.environ.get("ALL_SECRETS", "")
+    if raw:
+        try:
+            all_secrets = json.loads(raw)
+        except Exception as e:
+            logger.warning(f"ALL_SECRETS 解析失敗：{e}")
+
+    def lookup(field: str) -> str:
+        alias = SECRET_ALIASES.get(field, field.upper())
+        for src in (all_secrets, os.environ):
+            for name in (alias, field.upper(), field):
+                v = src.get(name)
+                if v:
+                    return v
+        return ""
+
+    # 補齊 template 裡列出的欄位
+    filled, missing = [], []
+    for field in list(cfg["api_keys"].keys()):
+        val = lookup(field)
         if val:
-            cfg["api_keys"][key] = val
+            cfg["api_keys"][field] = val
+            filled.append(field)
+        elif not cfg["api_keys"].get(field):
+            missing.append(field)
+
+    # template 沒列到、但 Secret 有提供的也一併填入
+    for field, alias in SECRET_ALIASES.items():
+        if field not in cfg["api_keys"]:
+            val = lookup(field)
+            if val:
+                cfg["api_keys"][field] = val
+                filled.append(field)
+
+    logger.info(f"已填入金鑰：{', '.join(filled) or '（無）'}")
+    if missing:
+        logger.warning(f"⚠️  以下金鑰缺少對應 Secret：{', '.join(missing)}")
 
     (BASE / "config.yaml").write_text(
         yaml.safe_dump(cfg, allow_unicode=True, sort_keys=False),

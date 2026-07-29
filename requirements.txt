@@ -1,9 +1,7 @@
+# 由 補齊相依與金鑰.command 依實際 import 掃描產生
+google-api-python-client>=2.100
+google-auth-httplib2>=0.1.1
+google-auth-oauthlib>=1.1
+google-auth>=2.23
 pyyaml>=6.0
 requests>=2.31
-google-api-python-client>=2.100
-google-auth>=2.23
-google-auth-oauthlib>=1.1
-google-auth-httplib2>=0.1.1
-replicate>=0.25
-anthropic>=0.40
-Pillow>=10.0

@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CP_HOME: ${{ github.workspace }}
+      ALL_SECRETS: ${{ toJSON(secrets) }}
     timeout-minutes: 20
 
     steps:
