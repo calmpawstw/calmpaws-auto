@@ -57,6 +57,11 @@ jobs:
           echo "tags=$(echo "$CFG" | python -c 'import sys,json;print(json.load(sys.stdin).get("hashtag_set",""))')" >> $GITHUB_OUTPUT
 
       - name: 產生 Reel 影片
+        env:
+          # orchestrator 內建的上傳走 Cloudflare Tunnel（為 Mac 寫的），
+          # runner 上沒有 cloudflared，而且後面的步驟已經負責上傳，
+          # 讓它再傳一次會發出兩則貼文。
+          CP_SKIP_UPLOAD: "1"
         run: |
           python cp_generate.py --mode reel --scene "${{ steps.pick.outputs.scene }}"
           ls -la output/

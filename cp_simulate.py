@@ -228,6 +228,58 @@ def main():
     good, out = run([py, "orchestrator.py", "--mode", "reel",
                      "--scene", scene or "relax", "--dry-run"],
                     env, "orchestrator dry-run", timeout=300)
+    if not good:
+        sys.exit(1)
+
+    # dry-run 會跳過上傳，所以上傳路徑的問題不會浮現 ——
+    # 先前 cloudflared 缺失就是這樣漏掉的。這裡改用靜態檢查補上。
+    print("\n  ── 上傳路徑靜態檢查 ──")
+    orch = (SIM / "orchestrator.py").read_text(encoding="utf-8")
+    up = (SIM / "upload_instagram.py")
+    up_src = up.read_text(encoding="utf-8") if up.exists() else ""
+
+    # 要驗證的是「即將推送的」workflow，不是本機那份可能過期的複本。
+    # 先前就是拿舊複本驗新設定，結果誤判。
+    candidates = []
+    env_dir = os.environ.get("CP_WORKFLOW_DIR")
+    if env_dir:
+        candidates.append(Path(env_dir) / "reel.yml")
+    candidates += [
+        LOCAL.parent / "calmpaws-cloud" / ".github" / "workflows" / "reel.yml",
+        LOCAL / ".github" / "workflows" / "reel.yml",
+    ]
+    reel_yml = next((c for c in candidates if c.exists()), None)
+    yml_src = reel_yml.read_text(encoding="utf-8") if reel_yml else ""
+    if reel_yml:
+        print(f"     檢查對象：{reel_yml}")
+
+    uses_cloudflared = "cloudflared" in up_src
+    has_skip = "CP_SKIP_UPLOAD" in orch
+    yml_sets_skip = "CP_SKIP_UPLOAD" in yml_src if yml_src else None
+
+    if uses_cloudflared:
+        warn("upload_instagram 會呼叫 cloudflared（runner 上沒有）")
+        if has_skip:
+            ok("orchestrator 支援 CP_SKIP_UPLOAD，雲端會跳過內建上傳")
+        else:
+            bad("orchestrator 沒有跳過機制 —— 雲端會 FileNotFoundError")
+            bad("請先執行 cp_patch_upload.py")
+            sys.exit(1)
+        if yml_sets_skip is False:
+            bad("reel.yml 沒有設定 CP_SKIP_UPLOAD，雲端仍會走到 cloudflared")
+            sys.exit(1)
+        elif yml_sets_skip:
+            ok("reel.yml 已設定 CP_SKIP_UPLOAD")
+    else:
+        ok("upload_instagram 不依賴 cloudflared")
+
+    # 實際驗證跳過邏輯會生效
+    env2 = dict(env)
+    env2["CP_SKIP_UPLOAD"] = "1"
+    good2, out2 = run([py, "-c",
+                       "import os;print('CP_SKIP_UPLOAD=' + "
+                       "os.environ.get('CP_SKIP_UPLOAD','未設定'))"],
+                      env2, "確認環境變數可傳遞")
 
     print()
     print("=" * 58)

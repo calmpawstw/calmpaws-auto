@@ -259,12 +259,19 @@ def run_reel_pipeline(scene: dict, config: dict, state: dict, dry_run: bool = Fa
             state["ig_media_id"] = "DRY_RUN_MEDIA_ID"
         else:
             logger.info("⑤ 上傳 Instagram Reels 中...")
-            media_id = upload_reel(
-                reel_path=Path(state["reel_video_path"]),
-                scene=scene,
-                config=config,
-                youtube_video_id=state.get("youtube_video_id"),
-            )
+            # _cp_skip_upload：雲端由 workflow 用 Release 附件 + Instagram API 上傳，
+            # orchestrator 只負責產出影片。runner 上沒有 cloudflared，
+            # 而且重複上傳會發出兩則貼文。
+            if os.environ.get('CP_SKIP_UPLOAD'):
+                logger.info('略過內建上傳（由 workflow 處理）')
+                media_id = None
+            else:
+                media_id = upload_reel(
+                    reel_path=Path(state["reel_video_path"]),
+                    scene=scene,
+                    config=config,
+                    youtube_video_id=state.get("youtube_video_id"),
+                )
             state["ig_media_id"] = media_id
             logger.info(f"✅ Instagram Reel 上傳完成：{media_id}")
     else:
