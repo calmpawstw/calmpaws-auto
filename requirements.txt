@@ -1,6 +1,7 @@
-# 依實際 import 掃描產生
+# 依實際 import 掃描產生（白名單標準庫，其餘一律列入）
 Pillow
 anthropic
+cloudinary
 elevenlabs
 google-api-python-client
 google-auth
