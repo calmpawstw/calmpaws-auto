@@ -52,6 +52,76 @@ def find_upload_calls(src: str, func_names: set) -> list:
     return hits
 
 
+REPLY_MARK = "_cp_reply_optional"
+
+
+def find_stmt_calls(src: str, func_names: set) -> list:
+    """找出單獨呼叫某函式的敘述（非賦值），回傳 (起始行, 結束行)"""
+    tree = ast.parse(src)
+    hits = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Expr):
+            continue
+        call = node.value
+        if not isinstance(call, ast.Call):
+            continue
+        name = None
+        if isinstance(call.func, ast.Name):
+            name = call.func.id
+        elif isinstance(call.func, ast.Attribute):
+            name = call.func.attr
+        if name in func_names:
+            hits.append((node.lineno, node.end_lineno))
+    return hits
+
+
+def patch_reply() -> bool:
+    """
+    讓留言回覆失敗不要中斷整支管線。
+
+    影片已經做好了，卻因為抓留言拿到 400 就整個 exit 1，
+    導致後面的上傳步驟全被 skip —— 這是很糟的失敗設計。
+    留言回覆是獨立功能，而且有自己的排程，
+    它掛掉不該影響發文。
+    """
+    src = TARGET.read_text(encoding="utf-8")
+    if REPLY_MARK in src:
+        print("✅ 留言回覆已是非阻斷式，略過")
+        return True
+
+    hits = find_stmt_calls(src, {"run_reply_pipeline"})
+    if not hits:
+        print("⚠️  找不到 run_reply_pipeline 呼叫")
+        return True
+
+    lines = src.split("\n")
+    for start, end in sorted(hits, reverse=True):
+        block = lines[start - 1:end]
+        indent = block[0][:len(block[0]) - len(block[0].lstrip())]
+        wrapped = [
+            f"{indent}# {REPLY_MARK}：留言回覆失敗不該擋住發文。",
+            f"{indent}# 影片已經產出，卻因為抓留言拿到 400 就整個中止，",
+            f"{indent}# 會讓後續上傳步驟全部被跳過。",
+            f"{indent}try:",
+        ]
+        wrapped += ["    " + l if l.strip() else l for l in block]
+        wrapped += [
+            f"{indent}except Exception as _cp_re:",
+            f"{indent}    logger.warning(f'留言回覆略過：{{_cp_re}}')",
+        ]
+        lines[start - 1:end] = wrapped
+        print(f"✅ 已包覆第 {start}-{end} 行的 run_reply_pipeline(...)")
+
+    TARGET.write_text("\n".join(lines), encoding="utf-8")
+    try:
+        py_compile.compile(str(TARGET), doraise=True)
+        print("✅ 語法檢查通過")
+        return True
+    except py_compile.PyCompileError as e:
+        print(f"❌ 語法錯誤：{e}")
+        return False
+
+
 def patch() -> bool:
     if not TARGET.exists():
         print(f"❌ 找不到 {TARGET}")
@@ -59,7 +129,7 @@ def patch() -> bool:
 
     src = TARGET.read_text(encoding="utf-8")
     if MARK in src:
-        print("✅ 已修補過，略過")
+        print("✅ 上傳跳過機制已存在，略過")
         return True
 
     hits = find_upload_calls(src, {"upload_reel"})
@@ -129,12 +199,24 @@ def verify() -> bool:
 
 if __name__ == "__main__":
     print("═" * 54)
-    print("  讓 orchestrator 在雲端跳過自行上傳")
+    print("  修補 orchestrator 的雲端行為")
     print("═" * 54)
     print(f"  目標：{TARGET}")
     print()
-    okp = patch()
+    if TARGET.exists():
+        shutil.copy(TARGET, str(TARGET) + ".prepatch2.bak")
+    print("① 跳過內建上傳")
+    ok1 = patch()
+    print()
+    print("② 留言回覆改為非阻斷")
+    ok2 = patch_reply()
     print()
     print("驗證：")
     okv = verify()
-    sys.exit(0 if (okp and okv) else 1)
+    if not (ok1 and ok2 and okv):
+        bak = str(TARGET) + ".prepatch2.bak"
+        if Path(bak).exists():
+            shutil.copy(bak, TARGET)
+            print("\n  ⚠️  已還原 orchestrator.py")
+        sys.exit(1)
+    sys.exit(0)

@@ -387,7 +387,13 @@ def main():
 
     # 留言回覆模式
     if args.mode == "reply":
-        run_reply_pipeline(config, args.dry_run)
+        # _cp_reply_optional：留言回覆失敗不該擋住發文。
+        # 影片已經產出，卻因為抓留言拿到 400 就整個中止，
+        # 會讓後續上傳步驟全部被跳過。
+        try:
+            run_reply_pipeline(config, args.dry_run)
+        except Exception as _cp_re:
+            logger.warning(f'留言回覆略過：{_cp_re}')
         return
 
     # 選擇場景
@@ -417,7 +423,13 @@ def main():
             save_run_state(state_file, state)
 
         # 自動回覆留言
-        run_reply_pipeline(config, args.dry_run)
+        # _cp_reply_optional：留言回覆失敗不該擋住發文。
+        # 影片已經產出，卻因為抓留言拿到 400 就整個中止，
+        # 會讓後續上傳步驟全部被跳過。
+        try:
+            run_reply_pipeline(config, args.dry_run)
+        except Exception as _cp_re:
+            logger.warning(f'留言回覆略過：{_cp_re}')
 
         logger.info("=" * 60)
         logger.info("✅ 本次自動化管線全部完成！")

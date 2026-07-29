@@ -273,6 +273,16 @@ def main():
     else:
         ok("upload_instagram 不依賴 cloudflared")
 
+    # 留言回覆必須是非阻斷的。
+    # 影片產出後才因為抓留言拿到 400 而 exit 1，
+    # 會讓後面的上傳步驟全被 skip —— 白做一次影片。
+    if "run_reply_pipeline" in orch:
+        if "_cp_reply_optional" in orch:
+            ok("留言回覆失敗不會中斷發文")
+        else:
+            bad("留言回覆失敗會中斷整支管線 —— 請執行 cp_patch_upload.py")
+            sys.exit(1)
+
     # 實際驗證跳過邏輯會生效
     env2 = dict(env)
     env2["CP_SKIP_UPLOAD"] = "1"
