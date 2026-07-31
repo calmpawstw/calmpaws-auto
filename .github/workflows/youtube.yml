@@ -12,6 +12,10 @@ on:
         description: "指定主題（留空則由優化引擎決定）"
         required: false
         type: string
+      duration_h:
+        description: "指定影片長度（小時）。未驗證的帳戶只能上傳 15 分鐘以內，可填 0.2 做測試"
+        required: false
+        type: string
 
 concurrency:
   group: calmpaws-content
@@ -57,10 +61,27 @@ jobs:
           YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
         run: python cloud_publish.py --build-config
 
+      - name: 覆寫影片長度（僅手動指定時）
+        if: inputs.duration_h != ''
+        env:
+          FORCE_DURATION: ${{ inputs.duration_h }}
+        run: |
+          python - << 'PY'
+          import os, yaml
+          h = float(os.environ["FORCE_DURATION"])
+          with open("config.yaml", encoding="utf-8") as f:
+              c = yaml.safe_load(f)
+          c.setdefault("schedule", {})["youtube_video_duration_hours"] = h
+          with open("config.yaml", "w", encoding="utf-8") as f:
+              yaml.safe_dump(c, f, allow_unicode=True, sort_keys=False)
+          print(f"已覆寫影片長度為 {h} 小時（約 {h*60:.0f} 分鐘）")
+          PY
+
       - name: 優化引擎挑選本次參數
         id: pick
         env:
           FORCE_SCENE: ${{ inputs.scene }}
+          FORCE_DURATION: ${{ inputs.duration_h }}
         run: |
           mkdir -p data
           python cp_optimizer.py --pick youtube > /tmp/cfg.json
@@ -71,6 +92,11 @@ jobs:
           forced = os.environ.get('FORCE_SCENE', '').strip()
           if forced:
               d['scene'] = forced
+          # 手動指定長度時要一併蓋掉優化引擎挑的值，
+          # 否則 cp_generate.py 的 --duration-h 會把 config 的覆寫又蓋回去
+          forced_dur = os.environ.get('FORCE_DURATION', '').strip()
+          if forced_dur:
+              d['duration_h'] = forced_dur
           for k in ('scene', 'title_formula', 'thumb_style',
                     'duration_h', 'upload_slot'):
               print(f"{k}={d.get(k, '')}")
