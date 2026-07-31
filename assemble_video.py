@@ -58,10 +58,20 @@ def assemble_youtube_video(
     logger.info(f"YouTube 快速靜態模式：{bg_image.name} + {music_path.name} → {duration_seconds//3600}h")
 
     # 靜態圖片 + 音樂，-tune stillimage 大幅加速編碼
+    #
+    # ⚠️ 這裡曾經有一個很隱蔽的 bug：原本用 -shortest 搭配 -t 28800，
+    # 但 -shortest 是「最短的輸入結束就收工」，音樂只有 60 秒時，
+    # 產出的「8 小時」影片實際上只有 60 秒 —— 而且 -t 完全被忽略，
+    # 不會有任何警告。標題寫 8 小時、內容 60 秒，觀眾一點開就跳出。
+    #
+    # 改法：拿掉 -shortest，改用 -stream_loop -1 讓音樂無限循環，
+    # 由 -t 決定最終長度。已實測 60 秒音樂可正確填滿指定長度，
+    # 且循環處音量連續、不會變靜音。
     cmd = [
         "ffmpeg", "-y",
         "-loop", "1",
         "-i", str(bg_image),
+        "-stream_loop", "-1",
         "-i", str(music_path),
         "-vf", f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2",
         "-c:v", "libx264",
@@ -71,7 +81,6 @@ def assemble_youtube_video(
         "-c:a", "aac",
         "-b:a", "192k",
         "-ar", "44100",
-        "-shortest",
         "-t", str(duration_seconds),
         "-movflags", "+faststart",
         str(output_path),
@@ -220,10 +229,16 @@ def assemble_all(
     config: dict,
     assets: dict,   # {music, thumbnail, reel_backgrounds, voice}
     output_dir: Path,
+    mode: str = "both",   # "youtube" | "reel" | "both"
 ) -> dict:
     """
-    組裝該場景的所有影片
-    返回 {youtube: Path, reel: Path}
+    組裝該場景的影片
+    返回 {youtube: Path|None, reel: Path|None}
+
+    mode 用來只做需要的那支。這在修好 -shortest bug 之後變得必要：
+    以前 8 小時影片因為 bug 只有 60 秒、15 秒就編完，所以 Reel 流程
+    順手多編一支也無所謂；修好之後那是真的 8 小時，Reel 流程再照做
+    會直接超過 workflow 的時間上限。
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -238,27 +253,35 @@ def assemble_all(
         # 也把 Reels 背景轉為 16:9 版本（直接拉伸，YouTube 觀眾習慣靜態背景）
         yt_images += assets["reel_backgrounds"][:3]
 
-    yt_output = output_dir / f"{scene_id}_youtube_{duration_h}h.mp4"
-    youtube_path = assemble_youtube_video(
-        music_path=assets["music"],
-        images=yt_images,
-        thumbnail_path=assets["thumbnail"],
-        output_path=yt_output,
-        config=config,
-        duration_seconds=duration_s,
-    )
+    youtube_path = None
+    if mode in ("youtube", "both"):
+        yt_output = output_dir / f"{scene_id}_youtube_{duration_h}h.mp4"
+        youtube_path = assemble_youtube_video(
+            music_path=assets["music"],
+            images=yt_images,
+            thumbnail_path=assets["thumbnail"],
+            output_path=yt_output,
+            config=config,
+            duration_seconds=duration_s,
+        )
+    else:
+        logger.info("略過 YouTube 長片組裝（本次只做 Reel）")
 
     # Reels（60秒）
-    reel_output = output_dir / f"{scene_id}_reel_60s.mp4"
-    reel_path = assemble_reel(
-        music_path=assets["music"],
-        backgrounds=assets.get("reel_backgrounds", [assets["thumbnail"]]),
-        voice_files=assets.get("voice", {}),
-        output_path=reel_output,
-        config=config,
-        scene=scene,
-        duration_seconds=60,
-    )
+    reel_path = None
+    if mode in ("reel", "both"):
+        reel_output = output_dir / f"{scene_id}_reel_60s.mp4"
+        reel_path = assemble_reel(
+            music_path=assets["music"],
+            backgrounds=assets.get("reel_backgrounds", [assets["thumbnail"]]),
+            voice_files=assets.get("voice", {}),
+            output_path=reel_output,
+            config=config,
+            scene=scene,
+            duration_seconds=60,
+        )
+    else:
+        logger.info("略過 Reel 組裝（本次只做 YouTube）")
 
     return {
         "youtube": youtube_path,

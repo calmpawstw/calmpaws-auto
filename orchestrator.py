@@ -247,7 +247,7 @@ def run_reel_pipeline(scene: dict, config: dict, state: dict, dry_run: bool = Fa
                 "reel_backgrounds": images["reel_backgrounds"],
                 "voice": voice,
             }
-            videos = assemble_all(scene, config, assets, output_dir)
+            videos = assemble_all(scene, config, assets, output_dir, mode="reel")
             state["reel_video_path"] = str(videos["reel"])
     else:
         logger.info(f"④ Reel 影片已存在")
