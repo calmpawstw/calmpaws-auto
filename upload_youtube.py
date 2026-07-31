@@ -42,6 +42,15 @@ def get_youtube_client(client_secrets_path: str):
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
+            # _cp_no_interactive_in_ci：雲端沒有人可以按「同意授權」，
+            # 讓它卡在 run_local_server 直到 workflow 逾時毫無意義。
+            if os.environ.get("GITHUB_ACTIONS"):
+                raise RuntimeError(
+                    "在雲端取不到有效的 YouTube token，且無法執行互動式授權。\n"
+                    "請確認 GitHub Secret 的 YT_TOKEN_JSON 內容正確且未過期，\n"
+                    "並確認 cloud_publish.py --build-config 有把它寫到 "
+                    f"{TOKEN_FILE}。"
+                )
             flow = InstalledAppFlow.from_client_secrets_file(
                 client_secrets_path, SCOPES
             )

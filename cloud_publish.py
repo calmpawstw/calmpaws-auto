@@ -32,6 +32,41 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger("cloud_publish")
 
 
+def _yt_token_path() -> Path:
+    """
+    取得 upload_youtube.py 裡 TOKEN_FILE 的實際位置。
+
+    用 AST 讀原始碼而不是 import，因為 import upload_youtube 會連帶
+    載入 google 那一票套件；build-config 連 reel.yml 也會跑，
+    不該為了讀一個常數就把整條路徑綁在 google 套件裝好上面。
+
+    讀不到就退回已知預設值，並記錄警告 —— 這兩個位置必須一致，
+    不一致正是這次 YouTube 上傳全掛的原因。
+    """
+    default = Path.home() / ".calm_paws_yt_token.json"
+    src_file = BASE / "upload_youtube.py"
+    if not src_file.exists():
+        return default
+    try:
+        import ast
+        tree = ast.parse(src_file.read_text(encoding="utf-8"))
+        for node in tree.body:
+            if not isinstance(node, ast.Assign):
+                continue
+            if not any(isinstance(t, ast.Name) and t.id == "TOKEN_FILE"
+                       for t in node.targets):
+                continue
+            # 預期形如 Path.home() / ".calm_paws_yt_token.json"
+            if (isinstance(node.value, ast.BinOp)
+                    and isinstance(node.value.op, ast.Div)
+                    and isinstance(node.value.right, ast.Constant)):
+                return Path.home() / node.value.right.value
+    except Exception as e:
+        logger.warning(f"讀取 upload_youtube.TOKEN_FILE 失敗（{type(e).__name__}），"
+                       f"使用預設路徑")
+    return default
+
+
 # ══════════════════════════════════════════════════════════
 #  由環境變數組出 config.yaml（金鑰不進 repo）
 # ══════════════════════════════════════════════════════════
@@ -141,20 +176,54 @@ def build_config():
         raise SystemExit(1)
     logger.info(f"設定完整：{len(cfg.get('scenes', []))} 個場景")
 
+    # ── YouTube 憑證 ──────────────────────────────────────
+    #
+    # ⚠️ 這裡曾經有一個讓 YouTube 上傳完全失效的路徑不匹配：
+    #   本檔把 token 寫到 BASE/token.json，
+    #   但 upload_youtube.py 讀的是 Path.home()/".calm_paws_yt_token.json"。
+    # 結果 runner 上永遠找不到 token，程式就退回互動式 OAuth
+    # （InstalledAppFlow），而 client_secrets 又是空字串，
+    # 於是拋 FileNotFoundError: ''。
+    #
+    # 更糟的情況是：如果 client_secrets 剛好存在，run_local_server()
+    # 會在無人的 runner 上等一個永遠不會發生的瀏覽器授權，
+    # 一路卡到 workflow 逾時（180 分鐘）才死。
+    #
+    # 所以這裡做三件事：
+    #   1. token 同時寫到 upload_youtube.py 真正會讀的位置
+    #   2. client_secret 寫成絕對路徑，並回填進 config
+    #   3. 缺 token 時直接失敗並說清楚，不要讓它去卡互動式流程
+    YT_TOKEN_PATH = _yt_token_path()
+
+    tok = os.environ.get("YT_TOKEN_JSON", "")
+    if tok:
+        (BASE / "token.json").write_text(tok, encoding="utf-8")
+        YT_TOKEN_PATH.parent.mkdir(parents=True, exist_ok=True)
+        YT_TOKEN_PATH.write_text(tok, encoding="utf-8")
+        try:
+            t = json.loads(tok)
+            if not t.get("refresh_token"):
+                logger.warning("YT_TOKEN_JSON 沒有 refresh_token，"
+                               "token 過期後將無法自動續期")
+        except json.JSONDecodeError:
+            raise SystemExit("❌ YT_TOKEN_JSON 不是有效的 JSON，請重新設定這個 Secret")
+        logger.info(f"YouTube token 已寫入：{YT_TOKEN_PATH}")
+    else:
+        logger.warning("⚠️ 沒有 YT_TOKEN_JSON —— YouTube 上傳一定會失敗")
+
+    sec = os.environ.get("YT_CLIENT_SECRET_JSON", "")
+    sec_path = BASE / "client_secret.json"
+    if sec:
+        sec_path.write_text(sec, encoding="utf-8")
+        logger.info("client_secret.json 已寫入")
+
+    # 回填絕對路徑，避免 config 裡是空字串或相對路徑找不到
+    cfg.setdefault("api_keys", {})["youtube_client_secrets"] = str(sec_path.resolve())
+
     (BASE / "config.yaml").write_text(
         yaml.safe_dump(cfg, allow_unicode=True, sort_keys=False),
         encoding="utf-8")
     logger.info("config.yaml 已由環境變數產生")
-
-    # YouTube 憑證
-    tok = os.environ.get("YT_TOKEN_JSON", "")
-    if tok:
-        (BASE / "token.json").write_text(tok, encoding="utf-8")
-        logger.info("token.json 已寫入")
-    sec = os.environ.get("YT_CLIENT_SECRET_JSON", "")
-    if sec:
-        (BASE / "client_secret.json").write_text(sec, encoding="utf-8")
-        logger.info("client_secret.json 已寫入")
 
 
 # ══════════════════════════════════════════════════════════
