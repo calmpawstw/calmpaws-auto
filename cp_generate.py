@@ -181,7 +181,26 @@ def main():
     proc = subprocess.run(cmd, env=env, cwd=str(BASE),
                           capture_output=True, text=True)
     out = (proc.stdout or "") + (proc.stderr or "")
-    print(out[-6000:])
+    # 之前只印最後 6000 字元，圖像生成的 log 發生在管線早期，常常被切掉，
+    # 導致「Replicate 是否失敗改用佔位圖」這種關鍵資訊在雲端 log 裡完全看不到。
+    # 改成印全部（YouTube 長片 log 較長，只在超過 200KB 時才截頭保留尾段）。
+    MAX = 200_000
+    if len(out) > MAX:
+        print(f"...（輸出過長，省略前面 {len(out) - MAX} 字元）...")
+        print(out[-MAX:])
+    else:
+        print(out)
+
+    # 不管有沒有被截斷，最後都印一行明確狀態，保證看得到
+    fallback_hits = [line for line in out.splitlines()
+                     if "改用佔位縮圖" in line or "改用佔位背景圖" in line
+                     or "找不到任何中文字型" in line]
+    if fallback_hits:
+        print("⚠️  IMAGE_STATUS=placeholder_fallback")
+        for line in fallback_hits:
+            print(f"   {line.strip()}")
+    else:
+        print("✅ IMAGE_STATUS=ok（未偵測到佔位圖或字型 fallback 訊息）")
 
     if proc.returncode != 0:
         logger.error(f"orchestrator 失敗（return code {proc.returncode}）")
