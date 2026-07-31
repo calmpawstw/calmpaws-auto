@@ -251,14 +251,60 @@ def _create_placeholder_image(path: Path, width: int, height: int, scene: dict, 
     logger.info(f"佔位圖已建立：{path}")
 
 
+
+# 圖庫：用 cp_build_image_bank.py 一次性花錢生成一批圖，之後每次發文
+# 從裡面隨機挑，不必每次都呼叫 Replicate（避免像這次一樣半路錢用完，
+# 也符合「現階段不想再花錢」的原則 —— 圖庫建好之後日常運作是零成本的）。
+IMAGE_BANK_DIRNAME = "image_bank"
+
+
+def _bank_pick(assets_dir: Path, scene: dict, config: dict) -> dict | None:
+    """從圖庫隨機挑一組圖；圖庫該場景是空的就回傳 None（呼叫端會退回原本邏輯）"""
+    import random
+    import shutil
+
+    bank_scene_dir = assets_dir / IMAGE_BANK_DIRNAME / scene["id"]
+    reel_pool = sorted((bank_scene_dir / "reel").glob("*.jpg")) if (bank_scene_dir / "reel").exists() else []
+    thumb_pool = sorted((bank_scene_dir / "thumb").glob("*.jpg")) if (bank_scene_dir / "thumb").exists() else []
+    if not reel_pool or not thumb_pool:
+        return None
+
+    thumb_dst = assets_dir / "images" / f"{scene['id']}_thumbnail.png"
+    thumb_dst.parent.mkdir(parents=True, exist_ok=True)
+    if not thumb_dst.exists():
+        img = Image.open(random.choice(thumb_pool)).convert("RGB")
+        img = _add_thumbnail_overlay(img, scene, config)
+        img.save(thumb_dst, "PNG", quality=95)
+
+    reel_dir = assets_dir / "images" / scene["id"]
+    reel_dir.mkdir(parents=True, exist_ok=True)
+    picks = (random.sample(reel_pool, k=5) if len(reel_pool) >= 5
+             else random.choices(reel_pool, k=5))  # 圖庫張數不夠 5 張就允許重複
+    reel_bgs = []
+    for i, src in enumerate(picks):
+        dst = reel_dir / f"{scene['id']}_reel_bg_{i:02d}.png"
+        shutil.copyfile(src, dst)
+        reel_bgs.append(dst)
+
+    logger.info(f"使用圖庫：{scene['id']}（{len(reel_pool)} 背景 / {len(thumb_pool)} 縮圖候選）")
+    return {"thumbnail": thumb_dst, "reel_backgrounds": reel_bgs}
+
+
 def generate_all_images(scene: dict, config: dict, assets_dir: Path, dry_run: bool = False) -> dict:
     """
     生成一個場景所需的所有圖像資源
     返回 {thumbnail: Path, reel_backgrounds: [Path, ...]}
     dry_run=True 時使用佔位圖，不呼叫 Replicate
+
+    優先順序：圖庫（免費，若已建立）→ Replicate 即時生成（要錢）→ 佔位圖（免費但不好看）
     """
     assets_dir = Path(assets_dir)
     api_token = config["api_keys"].get("replicate", "")
+
+    if not dry_run:
+        bank_result = _bank_pick(assets_dir, scene, config)
+        if bank_result:
+            return bank_result
 
     # dry_run 或無 token 時使用佔位圖
     if dry_run or not api_token or api_token.startswith("r8_YOUR"):
@@ -288,7 +334,7 @@ def generate_all_images(scene: dict, config: dict, assets_dir: Path, dry_run: bo
             generator=generator,
         )
     except Exception as e:
-        logger.warning(f"Replicate 縮圖生成失敗（{type(e).__name__}），改用佔位縮圖")
+        logger.warning(f"Replicate 縮圖生成失敗（{type(e).__name__}: {e}），改用佔位縮圖")
         thumbnail_path = assets_dir / "images" / f"{scene['id']}_thumbnail.png"
         if not thumbnail_path.exists():
             _create_placeholder_image(thumbnail_path, 1280, 720, scene, config)
@@ -302,7 +348,7 @@ def generate_all_images(scene: dict, config: dict, assets_dir: Path, dry_run: bo
             count=5,
         )
     except Exception as e:
-        logger.warning(f"Replicate 背景圖生成失敗（{type(e).__name__}），改用佔位背景圖")
+        logger.warning(f"Replicate 背景圖生成失敗（{type(e).__name__}: {e}），改用佔位背景圖")
         reel_dir = assets_dir / "images" / scene["id"]
         reel_bgs = []
         for i in range(5):
