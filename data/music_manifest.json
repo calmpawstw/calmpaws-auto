@@ -1,7 +1,7 @@
 {
   "repo": "calmpawstw/calmpaws-auto",
   "release_tag": "music-bank",
-  "updated_at": "2026-08-01T08:51:24.840078+00:00",
+  "updated_at": "2026-08-01T09:17:25.543983+00:00",
   "tracks": [
     {
       "id": "7f7e0c3817a6bb9d",
@@ -76,6 +76,42 @@
       "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/bc062ffbda754bb3.mp3"
     },
     {
+      "id": "270839cf85f5c845",
+      "name": "Paws in the Rain (1).mp3",
+      "scene": "any",
+      "duration": 188.0,
+      "size_mb": 5.8,
+      "asset": "270839cf85f5c845.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/270839cf85f5c845.mp3"
+    },
+    {
+      "id": "4fc974c1e5ed68fb",
+      "name": "Paws in the Rain.mp3",
+      "scene": "any",
+      "duration": 153.4,
+      "size_mb": 4.7,
+      "asset": "4fc974c1e5ed68fb.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/4fc974c1e5ed68fb.mp3"
+    },
+    {
+      "id": "494320fd2d0d596e",
+      "name": "Purr and Pine (1).mp3",
+      "scene": "any",
+      "duration": 187.0,
+      "size_mb": 5.8,
+      "asset": "494320fd2d0d596e.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/494320fd2d0d596e.mp3"
+    },
+    {
+      "id": "baef6018df00aefe",
+      "name": "Purr and Pine.mp3",
+      "scene": "any",
+      "duration": 196.0,
+      "size_mb": 6.0,
+      "asset": "baef6018df00aefe.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/baef6018df00aefe.mp3"
+    },
+    {
       "id": "ba1f6392df5e0c52",
       "name": "The Shape of Us (1).mp3",
       "scene": "any",
@@ -92,6 +128,24 @@
       "size_mb": 3.6,
       "asset": "7859e8470fa173c7.mp3",
       "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/7859e8470fa173c7.mp3"
+    },
+    {
+      "id": "691a929ebfd7f105",
+      "name": "Woodland Rest (1).mp3",
+      "scene": "any",
+      "duration": 212.0,
+      "size_mb": 6.5,
+      "asset": "691a929ebfd7f105.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/691a929ebfd7f105.mp3"
+    },
+    {
+      "id": "5a9e51182dbe2ded",
+      "name": "Woodland Rest.mp3",
+      "scene": "any",
+      "duration": 183.0,
+      "size_mb": 5.7,
+      "asset": "5a9e51182dbe2ded.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/5a9e51182dbe2ded.mp3"
     },
     {
       "id": "e37067ecec2a9389",
