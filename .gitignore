@@ -7,3 +7,11 @@ output/*.mp3
 *.pyc
 __pycache__/
 venv/
+
+# 執行過程產生的圖片與影片。這些是產出物不是素材，
+# 提交進 repo 會導致舊檔被永遠沿用（曾造成影片畫面
+# 一直是修正前的佔位圖）。assets/image_bank/ 要保留。
+assets/images/
+assets/music/
+output/
+logs/

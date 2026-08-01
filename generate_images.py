@@ -271,10 +271,16 @@ def _bank_pick(assets_dir: Path, scene: dict, config: dict) -> dict | None:
 
     thumb_dst = assets_dir / "images" / f"{scene['id']}_thumbnail.png"
     thumb_dst.parent.mkdir(parents=True, exist_ok=True)
-    if not thumb_dst.exists():
-        img = Image.open(random.choice(thumb_pool)).convert("RGB")
-        img = _add_thumbnail_overlay(img, scene, config)
-        img.save(thumb_dst, "PNG", quality=95)
+    # ⚠️ 這裡原本有 `if not thumb_dst.exists()` 的快取判斷，結果是：
+    # 修正前產生的舊佔位縮圖（灰藍底 + 中文變方塊）只要還留在 repo 裡，
+    # 就會被永遠沿用，而函式照樣回報「使用圖庫」、IMAGE_STATUS 也是 ok。
+    # YouTube 長片正是拿這張縮圖當靜態背景，所以整支影片都是那張舊圖。
+    #
+    # 從圖庫挑圖只是複製檔案 + 疊字，成本可以忽略，沒有快取的必要。
+    # 每次重做才能保證用到的是當下的圖庫與當下的字型設定。
+    img = Image.open(random.choice(thumb_pool)).convert("RGB")
+    img = _add_thumbnail_overlay(img, scene, config)
+    img.save(thumb_dst, "PNG", quality=95)
 
     reel_dir = assets_dir / "images" / scene["id"]
     reel_dir.mkdir(parents=True, exist_ok=True)
