@@ -15,3 +15,6 @@ assets/images/
 assets/music/
 output/
 logs/
+
+# 音檔走 GitHub Release，不進 repo（單檔 30MB＋，很快會爆）
+music_bank/

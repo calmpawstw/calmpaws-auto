@@ -1,0 +1,115 @@
+{
+  "repo": "calmpawstw/calmpaws-auto",
+  "release_tag": "music-bank",
+  "updated_at": "2026-08-01T08:48:26.847817+00:00",
+  "tracks": [
+    {
+      "id": "7f7e0c3817a6bb9d",
+      "name": "Felt Stream (1).mp3",
+      "scene": "any",
+      "duration": 184.3,
+      "size_mb": 2.9,
+      "asset": "7f7e0c3817a6bb9d.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/7f7e0c3817a6bb9d.mp3"
+    },
+    {
+      "id": "e206e70791d033d5",
+      "name": "Felt Stream.mp3",
+      "scene": "any",
+      "duration": 250.5,
+      "size_mb": 3.9,
+      "asset": "e206e70791d033d5.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/e206e70791d033d5.mp3"
+    },
+    {
+      "id": "840a1d10cfd03af5",
+      "name": "Forest Alpha Cello (1).mp3",
+      "scene": "any",
+      "duration": 215.4,
+      "size_mb": 3.3,
+      "asset": "840a1d10cfd03af5.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/840a1d10cfd03af5.mp3"
+    },
+    {
+      "id": "aab102efe8809f68",
+      "name": "Forest Alpha Cello.mp3",
+      "scene": "any",
+      "duration": 227.4,
+      "size_mb": 3.5,
+      "asset": "aab102efe8809f68.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/aab102efe8809f68.mp3"
+    },
+    {
+      "id": "3144a4793cbaa74e",
+      "name": "Forest Exhale (1).mp3",
+      "scene": "any",
+      "duration": 133.5,
+      "size_mb": 2.1,
+      "asset": "3144a4793cbaa74e.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/3144a4793cbaa74e.mp3"
+    },
+    {
+      "id": "f9cdef23d1b6fc0f",
+      "name": "Forest Exhale.mp3",
+      "scene": "any",
+      "duration": 189.7,
+      "size_mb": 3.0,
+      "asset": "f9cdef23d1b6fc0f.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/f9cdef23d1b6fc0f.mp3"
+    },
+    {
+      "id": "550232e9a455e9d2",
+      "name": "Forest Stream Resonance (1).mp3",
+      "scene": "any",
+      "duration": 171.9,
+      "size_mb": 2.7,
+      "asset": "550232e9a455e9d2.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/550232e9a455e9d2.mp3"
+    },
+    {
+      "id": "bc062ffbda754bb3",
+      "name": "Forest Stream Resonance.mp3",
+      "scene": "any",
+      "duration": 161.8,
+      "size_mb": 2.5,
+      "asset": "bc062ffbda754bb3.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/bc062ffbda754bb3.mp3"
+    },
+    {
+      "id": "ba1f6392df5e0c52",
+      "name": "The Shape of Us (1).mp3",
+      "scene": "any",
+      "duration": 211.9,
+      "size_mb": 3.3,
+      "asset": "ba1f6392df5e0c52.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/ba1f6392df5e0c52.mp3"
+    },
+    {
+      "id": "7859e8470fa173c7",
+      "name": "The Shape of Us.mp3",
+      "scene": "any",
+      "duration": 230.4,
+      "size_mb": 3.6,
+      "asset": "7859e8470fa173c7.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/7859e8470fa173c7.mp3"
+    },
+    {
+      "id": "aebeab412e9fac9b",
+      "name": "脈動的餘溫 (2).mp3",
+      "scene": "any",
+      "duration": 194.4,
+      "size_mb": 6.0,
+      "asset": "aebeab412e9fac9b.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/aebeab412e9fac9b.mp3"
+    },
+    {
+      "id": "73a39bdf861635ce",
+      "name": "脈動的餘溫 (3).mp3",
+      "scene": "any",
+      "duration": 163.6,
+      "size_mb": 5.0,
+      "asset": "73a39bdf861635ce.mp3",
+      "url": "https://github.com/calmpawstw/calmpaws-auto/releases/download/music-bank/73a39bdf861635ce.mp3"
+    }
+  ]
+}

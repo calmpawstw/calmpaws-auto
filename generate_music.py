@@ -121,16 +121,31 @@ def generate_music(
     scene_id = scene["id"]
     output_path = output_dir / f"{scene_id}_music.mp3"
 
+    # ⚠️ 不要因為檔案已存在就跳過。舊檔留著會導致每支影片都用同一首，
+    # 而「音訊完全相同、只有標題縮圖不同的大量影片」正是 YouTube
+    # 判定重複性內容、拒絕加入合作夥伴計畫的典型樣態。
+    # 每次重新取一首才能真正達到不重複。
     if output_path.exists():
-        logger.info(f"音樂已存在，跳過：{output_path}")
-        return output_path
+        output_path.unlink()
 
-    # ① 優先使用現有音樂循環
+    # ⓪ 最優先：從音樂庫挑一首最久沒用的（你自己做的原創音檔）
+    picked = _pick_from_bank(scene_id)
+    if picked:
+        src = _fetch_bank_track(picked, output_dir)
+        if src:
+            logger.info(f"音樂庫選曲：{picked['name']}（{picked['scene']}）")
+            result = _loop_music(src, output_path, duration_seconds)
+            _record_bank_use(picked["id"], scene_id)
+            return result
+        logger.warning(f"音樂庫曲目下載失敗：{picked['name']}，改用備案")
+
+    # ① 沒有音樂庫時，退回單一現有音樂循環
     existing_music = Path(os.path.expanduser(
         config["paths"].get("existing_music", "")
     ))
     if use_existing and existing_music.exists():
-        logger.info(f"使用現有音樂循環至 {duration_seconds}s")
+        logger.info(f"使用現有音樂循環至 {duration_seconds}s"
+                    f"（⚠️ 音樂庫是空的，所有影片會用同一首）")
         return _loop_music(existing_music, output_path, duration_seconds)
 
     # ① 備案：若現有音樂不存在，自動用 FFmpeg 產生療癒環境音
@@ -233,6 +248,74 @@ def _generate_ambient_music(output: Path, target_seconds: int) -> Path:
     )
     logger.info(f"療癒音樂合成完成：{output}")
     return output
+
+
+# ── 音樂庫 ────────────────────────────────────────────────────────────────────
+# 音檔本身放在 GitHub Release（30MB 的檔案放 repo 會很快爆掉），
+# repo 裡只有一份很小的清單 JSON。雲端執行時依清單下載當次要用的那一首。
+
+def _pick_from_bank(scene_id: str):
+    """挑一首最久沒用的；沒有音樂庫就回 None，呼叫端會退回舊行為"""
+    try:
+        import cp_music_bank
+    except Exception:
+        return None
+    try:
+        man = cp_music_bank.load_manifest()
+        tracks = man.get("tracks", [])
+        if not tracks:
+            return None
+        cands = cp_music_bank.candidates_for(scene_id, tracks)
+        if not cands:
+            logger.warning(f"音樂庫裡沒有 {scene_id} 可用的曲子"
+                           f"（該場景資料夾與根目錄都是空的）")
+            return None
+        conn = cp_music_bank.db()
+        rows = conn.execute(
+            "SELECT track_id, MAX(used_at) last_used, COUNT(*) n "
+            "FROM music_usage GROUP BY track_id").fetchall()
+        conn.close()
+        used = {r["track_id"]: (r["last_used"], r["n"]) for r in rows}
+        # 沒用過的優先，其次最久沒用的
+        return sorted(cands, key=lambda t: (used.get(t["id"], ("", 0))[1],
+                                            used.get(t["id"], ("", 0))[0]))[0]
+    except Exception as e:
+        logger.warning(f"音樂庫選曲失敗（{type(e).__name__}: {e}）")
+        return None
+
+
+def _fetch_bank_track(track: dict, cache_dir: Path):
+    """下載曲目（已下載過就直接用）。回傳本機路徑，失敗回 None。"""
+    cache = Path(cache_dir) / "_bank"
+    cache.mkdir(parents=True, exist_ok=True)
+    dst = cache / track["asset"]
+    if dst.exists() and dst.stat().st_size > 0:
+        return dst
+    url = track.get("url")
+    if not url:
+        return None
+    try:
+        r = requests.get(url, timeout=600, stream=True)
+        r.raise_for_status()
+        with open(dst, "wb") as f:
+            for chunk in r.iter_content(1024 * 256):
+                f.write(chunk)
+        if dst.stat().st_size == 0:
+            dst.unlink(missing_ok=True)
+            return None
+        return dst
+    except Exception as e:
+        logger.warning(f"下載失敗 {track.get('name')}：{type(e).__name__}: {e}")
+        dst.unlink(missing_ok=True)
+        return None
+
+
+def _record_bank_use(track_id: str, scene_id: str):
+    try:
+        import cp_music_bank
+        cp_music_bank.record_use(track_id, scene_id)
+    except Exception as e:
+        logger.warning(f"記錄選曲失敗（{type(e).__name__}），不影響本次產出")
 
 
 def _loop_music(source: Path, output: Path, target_seconds: int) -> Path:
