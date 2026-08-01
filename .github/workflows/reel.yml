@@ -52,7 +52,22 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CP_HOME: ${{ github.workspace }}
-      ALL_SECRETS: ${{ toJSON(secrets) }}
+      # ⚠️ 不要把整包 secrets 序列化成單一環境變數。
+      # 那個寫法會讓 GitHub 的濫用偵測判定成「可能是惡意的 workflow」
+      # 並拒絕執行（Action required，且 job 數量是 0）：
+      #   "GitHub detected that this workflow file may be malicious.
+      #    It will not run until someone with write access approves it."
+      # 因為那正是竊取 repo 金鑰的典型手法。
+      # 這就是先前所有 workflow 都卡住的真正原因。
+      #
+      # 只明確列出真正需要的 Secret。新增 API 時要記得補在這裡。
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      YT_TOKEN_JSON: ${{ secrets.YT_TOKEN_JSON }}
+      YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
     # 8 小時長片編碼約 70-80 分鐘，加上其他工作要留足餘裕。
     # GitHub 單一 job 上限是 360 分鐘。
     timeout-minutes: 340

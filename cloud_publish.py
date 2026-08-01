@@ -76,6 +76,7 @@ SECRET_ALIASES = {
     "replicate": "REPLICATE_API_TOKEN",
     "elevenlabs": "ELEVENLABS_API_KEY",
     "openai": "OPENAI_API_KEY",
+    "pexels": "PEXELS_API_KEY",
     "instagram_access_token": "IG_ACCESS_TOKEN",
     "instagram_user_id": "IG_USER_ID",
 }
@@ -92,15 +93,22 @@ def build_config():
 
     cfg.setdefault("api_keys", {})
 
-    # workflow 會用 toJSON(secrets) 把所有 Secret 一次傳進來。
-    # 這樣日後新增 API 只要設好 Secret 就會自動生效，
-    # 不必回頭改每個 workflow 的 env 區塊 —— 漏改就是
-    # ModuleNotFoundError 或金鑰為空，而且要等實跑才會發現。
+    # ⚠️ 原本這裡是用 toJSON(secrets) 把所有 Secret 一次倒進 ALL_SECRETS。
+    # 那個寫法很方便，但 GitHub 的濫用偵測會把它判定為
+    # 「可能是惡意的 workflow」並拒絕執行 ——
+    #     "GitHub detected that this workflow file may be malicious."
+    # 因為「把全部 Secret 序列化成一個環境變數」正是竊取金鑰的典型手法。
+    # 這就是所有 workflow 卡在 action_required 的真正原因。
+    #
+    # 改成由 workflow 明確列出需要的 Secret 逐一傳入。
+    # 保留 ALL_SECRETS 的讀取只是為了相容舊執行，正常情況不會用到。
     all_secrets = {}
     raw = os.environ.get("ALL_SECRETS", "")
     if raw:
         try:
             all_secrets = json.loads(raw)
+            logger.warning("偵測到 ALL_SECRETS —— 這個寫法會被 GitHub 判定為可疑，"
+                           "請改用明確列出 Secret 的 workflow")
         except Exception as e:
             logger.warning(f"ALL_SECRETS 解析失敗：{e}")
 
