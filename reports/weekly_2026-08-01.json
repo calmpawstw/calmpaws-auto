@@ -1,0 +1,493 @@
+{
+  "generated": "2026-08-01 07:39",
+  "week_of": "2026 年 08 月 01 日",
+  "ypp": {
+    "subs": 0,
+    "subs_target": 1000,
+    "subs_pct": 0.0,
+    "wh": 0,
+    "wh_target": 4000,
+    "wh_pct": 0.0,
+    "ig_followers": 0
+  },
+  "weekly": {
+    "views": {
+      "cur": 0,
+      "prev": 0,
+      "avg4": 0.0,
+      "delta": null
+    },
+    "watch_hours": {
+      "cur": 0.0,
+      "prev": 0,
+      "avg4": 0.0,
+      "delta": null
+    },
+    "subs": {
+      "cur": 0,
+      "prev": 0,
+      "avg4": 0.0,
+      "delta": null
+    }
+  },
+  "videos": [
+    {
+      "video_id": "lhwDkXdXobs",
+      "title": "",
+      "scene": "relax",
+      "title_formula": "outcome_first",
+      "thumb_style": "split_beforeafter",
+      "published_at": "2026-08-01T07:08:37.491676+00:00",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 0
+    },
+    {
+      "video_id": "aZ1q4N9Um54",
+      "title": "日常療癒｜讓毛孩隨時放鬆的背景音樂 8 小時 ☀️｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-07-28T08:17:04Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 4
+    }
+  ],
+  "reels": [
+    {
+      "media_id": "18092745923542775",
+      "permalink": null,
+      "hook_style": "owner_pov",
+      "published_at": "2026-07-31T17:03:36.740696+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
+    {
+      "media_id": "18135332077607383",
+      "permalink": null,
+      "hook_style": "pet_sleeping_immediate",
+      "published_at": "2026-07-31T15:02:20.838203+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 1,
+      "comments": 0
+    },
+    {
+      "media_id": "18092429018159460",
+      "permalink": null,
+      "hook_style": "before_after",
+      "published_at": "2026-07-31T14:59:21.528314+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
+    {
+      "media_id": "18099750080183560",
+      "permalink": null,
+      "hook_style": "pet_sleeping_immediate",
+      "published_at": "2026-07-31T14:31:16.141450+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
+    {
+      "media_id": "18122842576775923",
+      "permalink": null,
+      "hook_style": "owner_pov",
+      "published_at": "2026-07-29T14:08:03.649266+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
+    {
+      "media_id": "18115051841298580",
+      "permalink": "https://www.instagram.com/reel/DbXIxQuk8dm/",
+      "hook_style": null,
+      "published_at": "2026-07-29T03:21:52+0000",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    }
+  ],
+  "arms": {
+    "scene": [
+      {
+        "value": "car_travel",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "kitten_calm",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "senior_pet",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "separation_anxiety",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "sleep",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "sleep_night",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "thunderstorm",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "vet_visit",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "relax",
+        "n": 1,
+        "mean": 0.333,
+        "ci_low": 0,
+        "ci_high": 0.795,
+        "active": true
+      }
+    ],
+    "title_formula": [
+      {
+        "value": "duration_first",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "outcome_first",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "problem_first",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "scenario_first",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      }
+    ],
+    "thumb_style": [
+      {
+        "value": "big_text_closeup",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "minimal_illust",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "realistic_sleep",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "split_beforeafter",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      }
+    ],
+    "duration_h": [
+      {
+        "value": "10",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "3",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "8",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      }
+    ],
+    "upload_slot": [
+      {
+        "value": "mon_08",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "sat_10",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "wed_20",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      }
+    ],
+    "reel_hook": [
+      {
+        "value": "before_after",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "pet_sleeping_immediate",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "text_question",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "owner_pov",
+        "n": 1,
+        "mean": 0.333,
+        "ci_low": 0,
+        "ci_high": 0.795,
+        "active": true
+      }
+    ],
+    "hashtag_set": [
+      {
+        "value": "broad_tw",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "mixed",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "niche_behavior",
+        "n": 1,
+        "mean": 0.333,
+        "ci_low": 0,
+        "ci_high": 0.795,
+        "active": true
+      }
+    ]
+  },
+  "decisions": [
+    {
+      "ts": "2026-07-29T05:21:26.731719",
+      "dimension": "scene",
+      "action": "停用失效選項",
+      "detail": "car_travel 已不存在於 config.yaml，抽中會導致流程中斷",
+      "auto_applied": 1
+    },
+    {
+      "ts": "2026-07-29T05:21:26.731719",
+      "dimension": "scene",
+      "action": "停用失效選項",
+      "detail": "kitten_calm 已不存在於 config.yaml，抽中會導致流程中斷",
+      "auto_applied": 1
+    },
+    {
+      "ts": "2026-07-29T05:21:26.731719",
+      "dimension": "scene",
+      "action": "停用失效選項",
+      "detail": "senior_pet 已不存在於 config.yaml，抽中會導致流程中斷",
+      "auto_applied": 1
+    },
+    {
+      "ts": "2026-07-29T05:21:26.731719",
+      "dimension": "scene",
+      "action": "停用失效選項",
+      "detail": "sleep_night 已不存在於 config.yaml，抽中會導致流程中斷",
+      "auto_applied": 1
+    },
+    {
+      "ts": "2026-07-29T05:21:26.731719",
+      "dimension": "scene",
+      "action": "停用失效選項",
+      "detail": "thunderstorm 已不存在於 config.yaml，抽中會導致流程中斷",
+      "auto_applied": 1
+    }
+  ],
+  "flags": [],
+  "costs": [
+    {
+      "service": "Anthropic",
+      "usd": 1.95
+    },
+    {
+      "service": "Replicate",
+      "usd": 5.7
+    }
+  ],
+  "cost_total": 7.65,
+  "plan": [
+    {
+      "scene": "relax",
+      "title_formula": "outcome_first",
+      "thumb_style": "realistic_sleep",
+      "duration_h": "3",
+      "upload_slot": "sat_10"
+    },
+    {
+      "scene": "sleep",
+      "title_formula": "problem_first",
+      "thumb_style": "minimal_illust",
+      "duration_h": "8",
+      "upload_slot": "sat_10"
+    },
+    {
+      "scene": "sleep",
+      "title_formula": "scenario_first",
+      "thumb_style": "realistic_sleep",
+      "duration_h": "3",
+      "upload_slot": "mon_08"
+    }
+  ],
+  "revenue": {
+    "by_period": {},
+    "cost_by_period": {
+      "2026-07": 158.0,
+      "2026-08": 86.0
+    },
+    "total_revenue_twd": 0,
+    "total_cost_twd": 244.0,
+    "net_twd": -244.0
+  },
+  "projection": {
+    "status": {
+      "subs": 0,
+      "hours": 0,
+      "subs_pct": 0.0,
+      "hours_pct": 0.0,
+      "as_of": null
+    },
+    "rate": {
+      "subs_per_day": 0.0,
+      "hours_per_day": 0.0,
+      "days": 2,
+      "reliable": false
+    },
+    "verdict": "資料不足，至少需要 21 天且有實際成長才能推估"
+  },
+  "keywords": [],
+  "competitors": []
+}
