@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-01 07:39",
+  "generated": "2026-08-01 08:26",
   "week_of": "2026 年 08 月 01 日",
   "ypp": {
     "subs": 0,
@@ -61,6 +61,18 @@
     }
   ],
   "reels": [
+    {
+      "media_id": "18108477470115848",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-08-01T08:22:55.409101+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
     {
       "media_id": "18092745923542775",
       "permalink": null,
@@ -202,10 +214,10 @@
       },
       {
         "value": "relax",
-        "n": 1,
-        "mean": 0.333,
+        "n": 2,
+        "mean": 0.25,
         "ci_low": 0,
-        "ci_high": 0.795,
+        "ci_high": 0.63,
         "active": true
       }
     ],
@@ -356,10 +368,10 @@
       },
       {
         "value": "owner_pov",
-        "n": 1,
-        "mean": 0.333,
+        "n": 2,
+        "mean": 0.25,
         "ci_low": 0,
-        "ci_high": 0.795,
+        "ci_high": 0.63,
         "active": true
       }
     ],
@@ -382,10 +394,10 @@
       },
       {
         "value": "niche_behavior",
-        "n": 1,
-        "mean": 0.333,
+        "n": 2,
+        "mean": 0.25,
         "ci_low": 0,
-        "ci_high": 0.795,
+        "ci_high": 0.63,
         "active": true
       }
     ]
@@ -431,46 +443,46 @@
   "costs": [
     {
       "service": "Anthropic",
-      "usd": 1.95
+      "usd": 2.25
     },
     {
       "service": "Replicate",
-      "usd": 5.7
+      "usd": 7.199999999999999
     }
   ],
-  "cost_total": 7.65,
+  "cost_total": 9.45,
   "plan": [
     {
-      "scene": "relax",
+      "scene": "vet_visit",
+      "title_formula": "problem_first",
+      "thumb_style": "split_beforeafter",
+      "duration_h": "8",
+      "upload_slot": "mon_08"
+    },
+    {
+      "scene": "separation_anxiety",
       "title_formula": "outcome_first",
       "thumb_style": "realistic_sleep",
       "duration_h": "3",
-      "upload_slot": "sat_10"
-    },
-    {
-      "scene": "sleep",
-      "title_formula": "problem_first",
-      "thumb_style": "minimal_illust",
-      "duration_h": "8",
-      "upload_slot": "sat_10"
-    },
-    {
-      "scene": "sleep",
-      "title_formula": "scenario_first",
-      "thumb_style": "realistic_sleep",
-      "duration_h": "3",
       "upload_slot": "mon_08"
+    },
+    {
+      "scene": "vet_visit",
+      "title_formula": "scenario_first",
+      "thumb_style": "big_text_closeup",
+      "duration_h": "3",
+      "upload_slot": "sat_10"
     }
   ],
   "revenue": {
     "by_period": {},
     "cost_by_period": {
       "2026-07": 158.0,
-      "2026-08": 86.0
+      "2026-08": 144.0
     },
     "total_revenue_twd": 0,
-    "total_cost_twd": 244.0,
-    "net_twd": -244.0
+    "total_cost_twd": 302.0,
+    "net_twd": -302.0
   },
   "projection": {
     "status": {
