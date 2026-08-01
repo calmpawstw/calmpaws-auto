@@ -36,7 +36,10 @@ def get_youtube_client(client_secrets_path: str):
     creds = None
 
     if TOKEN_FILE.exists():
-        creds = Credentials.from_authorized_user_file(str(TOKEN_FILE), SCOPES)
+        # _cp_use_token_own_scopes：不要傳 SCOPES。傳了會蓋掉 token 實際被
+        # 授權的 scope，續期時送出非原始授權子集的 scope，
+        # Google 會回 invalid_scope: Bad Request。
+        creds = Credentials.from_authorized_user_file(str(TOKEN_FILE))
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
