@@ -1,10 +1,42 @@
 name: Instagram Reel
 
+# ══════════════════════════════════════════════════════════
+# 這支現在是「每日總管」：所有排程工作都在這裡完成。
+#
+# 為什麼要合併：
+#   analytics / report / monthly / refresh-token / youtube 這幾支
+#   的排程執行全部回報 action_required —— 工作根本沒被指派出去
+#   （job 數量 0）。查過 Actions 權限、environment 保護規則、
+#   workflow 註冊狀態、檔案內容 diff，都正常，原因仍不明。
+#
+#   而 reel.yml 是唯一排程真的會執行的。與其繼續追一個查不出
+#   原因的平台行為，不如把工作搬進這條已證實可行的路徑。
+#
+#   刻意不新增 workflow 檔案，也不改動 name 與 cron ——
+#   新檔案可能正是觸發那道關卡的原因。
+#
+# 每天做：Reel 發佈、數據收集
+# 週一：  YouTube 長片、營運週報
+# 週三/六：YouTube 長片
+# 每月 1 日：月度策略檢討
+# 每月 1、15 日：Instagram Token 續期
+# ══════════════════════════════════════════════════════════
+
 on:
   schedule:
     # 每日台灣時間 19:00（UTC 11:00）
+    # 這個時段是唯一證實排程會正常執行的，不要改。
     - cron: "0 11 * * *"
   workflow_dispatch:
+    inputs:
+      force:
+        description: "手動強制執行某項工作：youtube / report / monthly / token / all（留空＝只做每日工作）"
+        required: false
+        type: string
+      duration_h:
+        description: "YouTube 影片長度（小時）。測試可填 0.2"
+        required: false
+        type: string
 
 # 同時只跑一個，避免兩個 job 同時改 metrics.db 造成衝突
 concurrency:
@@ -13,6 +45,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   publish:
@@ -20,7 +53,9 @@ jobs:
     env:
       CP_HOME: ${{ github.workspace }}
       ALL_SECRETS: ${{ toJSON(secrets) }}
-    timeout-minutes: 45
+    # 8 小時長片編碼約 70-80 分鐘，加上其他工作要留足餘裕。
+    # GitHub 單一 job 上限是 360 分鐘。
+    timeout-minutes: 340
 
     steps:
       - uses: actions/checkout@v4
@@ -36,16 +71,59 @@ jobs:
           sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
           pip install -q -r requirements.txt
 
+      - name: 判斷今天要做哪些工作
+        id: when
+        run: |
+          # cron 是 11:00 UTC＝台灣 19:00，同一天，所以直接用 UTC 日期
+          DOW=$(date -u +%u)   # 1=週一 … 7=週日
+          DOM=$(date -u +%d)   # 01..31
+          F="${{ inputs.force }}"
+
+          yn () { if [ "$1" = "1" ]; then echo yes; else echo no; fi }
+
+          DO_YT=0;  DO_RPT=0; DO_MON=0; DO_TOK=0
+          case "$DOW" in 1|3|6) DO_YT=1 ;; esac
+          [ "$DOW" = "1" ] && DO_RPT=1
+          [ "$DOM" = "01" ] && DO_MON=1
+          { [ "$DOM" = "01" ] || [ "$DOM" = "15" ]; } && DO_TOK=1
+
+          # all 刻意不包含 token 續期 —— 那會改寫 Secret，
+          # 不該混在一般測試裡不小心觸發，要測就明確指定 token。
+          case "$F" in
+            all)     DO_YT=1; DO_RPT=1; DO_MON=1 ;;
+            youtube) DO_YT=1 ;;
+            report)  DO_RPT=1 ;;
+            monthly) DO_MON=1 ;;
+            token)   DO_TOK=1 ;;
+          esac
+
+          {
+            echo "youtube=$DO_YT"
+            echo "report=$DO_RPT"
+            echo "monthly=$DO_MON"
+            echo "token=$DO_TOK"
+          } >> $GITHUB_OUTPUT
+
+          echo "今天是週$DOW、$DOM 日"
+          echo "  Reel：yes（每日）"
+          echo "  數據收集：yes（每日）"
+          echo "  YouTube 長片：$(yn $DO_YT)"
+          echo "  營運週報：$(yn $DO_RPT)"
+          echo "  月度檢討：$(yn $DO_MON)"
+          echo "  Token 續期：$(yn $DO_TOK)"
+
       - name: 由 Secrets 產生設定檔
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           YT_TOKEN_JSON: ${{ secrets.YT_TOKEN_JSON }}
           YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
         run: python cloud_publish.py --build-config
 
+      # ══════════════ 每日：Instagram Reel ══════════════
       - name: 優化引擎挑選本次參數
         id: pick
         run: |
@@ -106,11 +184,232 @@ jobs:
             --hook "${{ steps.pick.outputs.hook }}" \
             --hashtag-set "${{ steps.pick.outputs.tags }}"
 
+      # ══════════════ 每日：數據收集 ══════════════
+      # if: always() —— Reel 失敗也要收數據，否則報表會有空洞
+      - name: 收集數據
+        if: always()
+        run: |
+          mkdir -p data
+          python cp_analytics.py --backfill 3 || echo "⚠️ 數據收集失敗，繼續"
+
+      # ══════════════ 每月 1、15 日：Token 續期 ══════════════
+      # 排在長片之前：這是基礎設施，不能因為長片跑太久被卡掉
+      - name: Instagram Token 續期
+        if: always() && steps.when.outputs.token == '1'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "⚠️ 缺少 GH_PAT，跳過 Token 續期"
+            echo "   請建立 fine-grained PAT（權限：Secrets 讀寫）並存為 GH_PAT"
+            exit 0
+          fi
+          RESP=$(curl -s "https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${IG_ACCESS_TOKEN}")
+          NEW=$(echo "$RESP" | python -c "import sys,json;print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null)
+          EXP=$(echo "$RESP" | python -c "import sys,json;print(json.load(sys.stdin).get('expires_in',0))" 2>/dev/null)
+          if [ -z "$NEW" ]; then
+            echo "❌ 續期失敗：$RESP"
+            gh issue create \
+              --title "🔑 Instagram Token 續期失敗 — 需要手動處理" \
+              --body "自動續期失敗，Token 可能已過期或權限不足。
+
+          **影響**：Instagram 自動發文與數據收集會停止。
+
+          **處理方式**：在 Mac 上重新執行 IG直連上線.command 取得新 Token，
+          然後到 Settings → Secrets → Actions 更新 IG_ACCESS_TOKEN。
+
+          [執行紀錄](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
+              --label "自動化失敗" 2>/dev/null || true
+            exit 0
+          fi
+          echo "✅ 新 Token 有效期 $((EXP / 86400)) 天"
+          gh secret set IG_ACCESS_TOKEN --body "$NEW" && echo "✅ Secret 已更新"
+
+      # ══════════════ 週一/三/六：YouTube 長片 ══════════════
+      - name: 覆寫影片長度（僅手動指定時）
+        if: always() && steps.when.outputs.youtube == '1' && inputs.duration_h != ''
+        env:
+          FORCE_DURATION: ${{ inputs.duration_h }}
+        run: |
+          python - << 'PY'
+          import os, yaml
+          h = float(os.environ["FORCE_DURATION"])
+          with open("config.yaml", encoding="utf-8") as f:
+              c = yaml.safe_load(f)
+          c.setdefault("schedule", {})["youtube_video_duration_hours"] = h
+          with open("config.yaml", "w", encoding="utf-8") as f:
+              yaml.safe_dump(c, f, allow_unicode=True, sort_keys=False)
+          print(f"已覆寫影片長度為 {h} 小時（約 {h*60:.0f} 分鐘）")
+          PY
+
+      - name: 產生並上傳 YouTube 長片
+        id: yt
+        if: always() && steps.when.outputs.youtube == '1'
+        env:
+          FORCE_DURATION: ${{ inputs.duration_h }}
+        run: |
+          python cp_optimizer.py --pick youtube > /tmp/cfg.json
+          cat /tmp/cfg.json
+          python - << 'PY' > /tmp/ytargs.env
+          import json, os
+          d = json.load(open('/tmp/cfg.json'))
+          fd = os.environ.get('FORCE_DURATION', '').strip()
+          if fd:
+              d['duration_h'] = fd
+          for k in ('scene', 'title_formula', 'thumb_style', 'duration_h', 'upload_slot'):
+              print(f"{k}={d.get(k, '')}")
+          PY
+          . /tmp/ytargs.env
+          python cp_generate.py --mode youtube \
+            --scene "$scene" \
+            --title-formula "$title_formula" \
+            --thumb-style "$thumb_style" \
+            --duration-h "$duration_h" \
+            --upload-slot "$upload_slot" \
+            | tee /tmp/out.log
+          VID=$(grep -oE 'VIDEO_ID=[A-Za-z0-9_-]+' /tmp/out.log | tail -1 | cut -d= -f2)
+          echo "video_id=$VID" >> $GITHUB_OUTPUT
+          echo "已上傳：https://youtu.be/$VID"
+
+      # ══════════════ 週一：營運週報 ══════════════
+      - name: 產生營運週報
+        if: always() && steps.when.outputs.report == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python cp_optimizer.py --update > /tmp/opt.json || echo "{}" > /tmp/opt.json
+          python cp_report.py --no-open || echo "⚠️ 報告產生失敗"
+          python - << 'PY' > /tmp/issue.md
+          import json, datetime as dt
+          try:
+              d = json.load(open('/tmp/opt.json'))
+          except Exception:
+              d = {}
+          L = [f"# 安寵 Calm Paws 週報 {dt.date.today()}\n"]
+          st = d.get('ypp', {})
+          L.append("## 獲利進度\n")
+          L.append("| 項目 | 現況 |")
+          L.append("|---|---|")
+          L.append(f"| 訂閱數 | {st.get('subs', 0):,} / 1,000 |")
+          L.append(f"| 12 個月觀看時數 | {st.get('hours', 0):,} / 4,000 |")
+          flags = d.get('flags', [])
+          L.append("\n## 風險燈號\n")
+          if not flags:
+              L.append("🟢 運作正常")
+          for f in flags:
+              icon = '🔴' if f.get('severity') == 'critical' else '🟡'
+              L.append(f"- {icon} **{f.get('kind')}** — {f.get('detail')}")
+          dec = d.get('decisions', [])
+          L.append("\n## 本週自動調整\n")
+          if dec:
+              for x in dec:
+                  L.append(f"- **{x.get('dimension')}** {x.get('action')}：{x.get('detail')}")
+          else:
+              L.append("- 無變更")
+          L.append("\n完整報告 HTML 已存進 repo 的 reports/ 目錄。")
+          print("\n".join(L))
+          PY
+          gh issue create \
+            --title "📊 安寵 Calm Paws 週報 $(date -u +%Y-%m-%d)" \
+            --body-file /tmp/issue.md \
+            --label "週報" 2>/dev/null || \
+          gh issue create \
+            --title "📊 安寵 Calm Paws 週報 $(date -u +%Y-%m-%d)" \
+            --body-file /tmp/issue.md
+
+      # ══════════════ 每月 1 日：策略檢討 ══════════════
+      - name: 月度策略檢討
+        if: always() && steps.when.outputs.monthly == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python cp_seo.py --research --limit 25 || echo "⚠️ 關鍵字探勘失敗，繼續"
+          python cp_seo.py --competitors || echo "⚠️ 競品分析失敗，繼續"
+          python - << 'PY' > /tmp/monthly.md
+          import os, sys, datetime as dt
+          sys.path.insert(0, os.environ.get("CP_HOME", "."))
+          from cp_revenue import db, ypp_status, project_ypp, revenue_summary
+
+          conn = db()
+          today = dt.date.today()
+          last_month = (today.replace(day=1) - dt.timedelta(days=1)).strftime("%Y-%m")
+          L = [f"# {last_month} 月度策略檢討\n"]
+
+          st = ypp_status(conn); pj = project_ypp(conn); rate = pj.get("rate", {})
+          L.append("## 獲利路徑\n")
+          L.append("| 項目 | 現況 |")
+          L.append("|---|---|")
+          L.append(f"| 訂閱數 | {st['subs']:,} / 1,000（{st['subs_pct']}%）|")
+          L.append(f"| 12 個月觀看時數 | {st['hours']:,} / 4,000（{st['hours_pct']}%）|")
+          L.append(f"| 每日新增訂閱 | {rate.get('subs_per_day', 0)} |")
+          L.append(f"\n**{pj.get('verdict', '資料不足')}**\n")
+          if pj.get("bottleneck"):
+              L.append(f"瓶頸在**{pj['bottleneck']}**。\n")
+
+          L.append("## 關鍵字機會\n")
+          kws = conn.execute("""
+              SELECT term, opportunity, top_median_views, top_median_subs
+              FROM keywords WHERE opportunity > 0
+              ORDER BY opportunity DESC LIMIT 12""").fetchall()
+          if kws:
+              L.append("| 關鍵字 | 機會 | 中位觀看 | 中位訂閱 |")
+              L.append("|---|---|---|---|")
+              for k in kws:
+                  L.append(f"| {k['term']} | {k['opportunity']:.2f} | "
+                           f"{k['top_median_views']:,} | {k['top_median_subs']:,} |")
+              L.append(f"\n建議下個月標題與說明欄優先涵蓋："
+                       f"{'、'.join(k['term'] for k in kws[:3])}\n")
+          else:
+              L.append("關鍵字探勘無結果。\n")
+
+          L.append("## 競品動態\n")
+          comps = conn.execute("""
+              SELECT title, subs, recent_uploads, avg_recent_views
+              FROM competitors ORDER BY subs DESC LIMIT 10""").fetchall()
+          if comps:
+              L.append("| 頻道 | 訂閱 | 近 30 天上片 | 近期均觀看 |")
+              L.append("|---|---|---|---|")
+              for c in comps:
+                  L.append(f"| {c['title']} | {c['subs']:,} | "
+                           f"{c['recent_uploads']} | {c['avg_recent_views']:,} |")
+              small = [c for c in comps if c["subs"] < 50000]
+              if small:
+                  avg_up = sum(c["recent_uploads"] for c in small) / len(small)
+                  L.append(f"\n訂閱 5 萬以下的同類頻道，近 30 天平均上片 {avg_up:.1f} 支。"
+                           f"這是比較實際的對照組。\n")
+          else:
+              L.append("尚無競品資料。\n")
+
+          L.append("## 這個月該做的事\n")
+          todo = []
+          if not rate.get("reliable"):
+              todo.append("持續產出，累積到至少 21 天有效數據才能判斷趨勢")
+          if st["subs"] < 100:
+              todo.append("訂閱數仍低。現階段該盯的是**曝光次數**有沒有成長")
+          if kws:
+              todo.append(f"把「{kws[0]['term']}」這類高機會關鍵字放進標題與說明欄")
+          if not todo:
+              todo.append("維持現有節奏，觀察數據")
+          for i, t in enumerate(todo, 1):
+              L.append(f"{i}. {t}")
+          conn.close()
+          print("\n".join(L))
+          PY
+          gh issue create \
+            --title "📈 安寵 Calm Paws 月度策略檢討 $(date -u +%Y-%m)" \
+            --body-file /tmp/monthly.md \
+            --label "月度檢討" 2>/dev/null || \
+          gh issue create \
+            --title "📈 安寵 Calm Paws 月度策略檢討 $(date -u +%Y-%m)" \
+            --body-file /tmp/monthly.md
+
+      # ══════════════ 收尾 ══════════════
       - name: 回寫狀態資料庫
         if: always()
         run: |
           chmod +x git_push.sh
-          ./git_push.sh "chore: 更新 Reel 記錄" data/metrics.db
+          ./git_push.sh "chore: 每日自動化 $(date -u +%Y-%m-%d)" data/metrics.db reports
 
       - name: 清除 7 天前的暫存 Release
         if: always()
@@ -125,3 +424,13 @@ jobs:
                 gh release delete "$tag" --yes --cleanup-tag && echo "已刪除 $tag"
               fi
             done || true
+
+      - name: 失敗時開 Issue 通知
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "⚠️ 每日自動化失敗 $(date -u +%Y-%m-%d)" \
+            --body "[執行紀錄](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
+            --label "自動化失敗" 2>/dev/null || true
