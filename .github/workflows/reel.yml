@@ -202,10 +202,52 @@ jobs:
       # ══════════════ 每日：數據收集 ══════════════
       # if: always() —— Reel 失敗也要收數據，否則報表會有空洞
       - name: 收集數據
+        id: analytics
         if: always()
         run: |
           mkdir -p data
-          python cp_analytics.py --backfill 3 || echo "⚠️ 數據收集失敗，繼續"
+          if python cp_analytics.py --backfill 3 2>&1 | tee /tmp/an.log; then
+            echo "ok=1" >> $GITHUB_OUTPUT
+          else
+            echo "ok=0" >> $GITHUB_OUTPUT
+            echo "⚠️ 數據收集失敗，繼續執行其他工作"
+          fi
+          # token 失效是最常見也最容易被忽略的失敗 ——
+          # Google OAuth 同意畫面若停在「測試中」，refresh token
+          # 每 7 天就會自動失效，整條 YouTube 線會靜靜停擺。
+          if grep -q "invalid_grant\|Token has been expired or revoked" /tmp/an.log; then
+            echo "token_dead=1" >> $GITHUB_OUTPUT
+          fi
+
+      - name: YouTube 授權失效時開 Issue 通知
+        if: always() && steps.analytics.outputs.token_dead == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 同一天只開一張，避免每日重複洗版
+          TITLE="🔑 YouTube 授權已失效 — 需要手動重新授權"
+          if gh issue list --repo "${{ github.repository }}" --state open \
+               --search "$TITLE in:title" --json number --jq 'length' \
+               | grep -q '^0$'; then
+            gh issue create \
+              --title "$TITLE" \
+              --body "數據收集時偵測到 \`invalid_grant: Token has been expired or revoked\`。
+
+          **影響**：YouTube 上傳與數據收集全部停擺，週報會顯示為 0。
+
+          **最可能的原因**：Google Cloud Console 的 OAuth 同意畫面停在
+          「測試中 / Testing」狀態 —— 這種狀態下 refresh token 固定 7 天失效。
+
+          **處理方式**：
+          1. 到 https://console.cloud.google.com/auth/audience
+             把發布狀態改成「正式版 / In production」
+          2. 在 Mac 上執行 \`永久修復YouTube授權.command\`
+
+          [執行紀錄](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
+              --label "自動化失敗" 2>/dev/null || true
+          else
+            echo "已有未關閉的相同 Issue，不重複建立"
+          fi
 
       # ══════════════ 每月 1、15 日：Token 續期 ══════════════
       # 排在長片之前：這是基礎設施，不能因為長片跑太久被卡掉

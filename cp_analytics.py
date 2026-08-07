@@ -165,19 +165,36 @@ def load_config() -> dict:
 ANALYTICS_SCOPE = "https://www.googleapis.com/auth/yt-analytics.readonly"
 
 
+def token_path():
+    """
+    token 的實際位置。授權流程寫到 ~/.calm_paws_yt_token.json，
+    雲端的 build-config 另外會寫一份 BASE_DIR/token.json。
+    寫死其中一個的結果，就是重新授權後仍讀到舊的失效檔案。
+    """
+    from pathlib import Path as _P
+    for p in (_P.home() / ".calm_paws_yt_token.json", BASE_DIR / "token.json"):
+        if p.exists():
+            return p
+    return None
+
+
 def check_token_scopes() -> tuple:
     """
-    檢查 token.json 有沒有 Analytics 讀取權限。
+    檢查 token 有沒有 Analytics 讀取權限。
     只有上傳權限的 token 拿不到觀看時數與 CTR，優化引擎會沒有數據可學。
+
+    ⚠️ 注意：這裡只看 token 檔案裡記錄的 scopes 欄位，
+    不代表 token 還有效 —— 一個已經被撤銷或過期的 token，
+    scopes 欄位照樣完整。要確認能不能用，必須實際呼叫 API。
     回傳 (是否足夠, 訊息)
     """
-    p = BASE_DIR / "token.json"
-    if not p.exists():
-        return False, f"找不到 {p}"
+    p = token_path()
+    if p is None:
+        return False, "找不到 token 檔（~/.calm_paws_yt_token.json 或 token.json）"
     try:
         d = json.loads(p.read_text())
     except Exception as e:
-        return False, f"token.json 解析失敗：{e}"
+        return False, f"{p.name} 解析失敗：{e}"
 
     scopes = d.get("scopes") or []
     if ANALYTICS_SCOPE in scopes:
@@ -204,21 +221,25 @@ def youtube_clients():
         logger.error("缺少 google-api-python-client，請執行安裝腳本")
         return None, None
 
-    token_path = BASE_DIR / "token.json"
-    if not token_path.exists():
-        logger.error("找不到 token.json，請先執行授權")
+    # ⚠️ 這裡曾經寫死 BASE_DIR/"token.json"，但實際授權流程把 token
+    # 存到 ~/.calm_paws_yt_token.json（upload_youtube.TOKEN_FILE）。
+    # 結果重新授權之後，這裡仍讀到舊的、已失效的 token，
+    # 症狀是對一組剛發出的新 token 回報 invalid_grant。
+    # 改成優先讀權威位置，再退回舊路徑。
+    tok_path = token_path()
+    if tok_path is None:
+        logger.error("找不到 token（~/.calm_paws_yt_token.json 或 token.json）")
         return None, None
+    logger.info(f"使用 token：{tok_path}")
 
-    scopes = [
-        "https://www.googleapis.com/auth/youtube.upload",
-        "https://www.googleapis.com/auth/youtube.readonly",
-        "https://www.googleapis.com/auth/yt-analytics.readonly",
-    ]
     try:
-        creds = Credentials.from_authorized_user_file(str(token_path), scopes)
+        # ⚠️ 不要傳 scopes。傳了會蓋掉 token 實際被授權的範圍，
+        # 續期時送出非原始授權子集的 scope，Google 會回 invalid_scope。
+        # （這裡原本還寫了 youtube.readonly，跟實際授權的 youtube 不一致。）
+        creds = Credentials.from_authorized_user_file(str(tok_path))
         if creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            token_path.write_text(creds.to_json())
+            tok_path.write_text(creds.to_json())
         return (
             build("youtube", "v3", credentials=creds, cache_discovery=False),
             build("youtubeAnalytics", "v2", credentials=creds, cache_discovery=False),
