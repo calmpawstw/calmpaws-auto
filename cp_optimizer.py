@@ -86,7 +86,11 @@ DIMENSIONS = {
         "realistic_sleep",    # 寫實睡眠場景
         "split_beforeafter",  # 左右對比
     ],
-    "duration_h": ["3", "8", "10"],
+    # 原本是 ["3", "8", "10"]。實測結果：8/10 小時的長片全部卡在
+    # YouTube「處理中」，最長卡了 17 天沒完成；同一批次的 1 小時
+    # 測試片秒過。新頻道對長片似乎有審核/處理門檻，先退回確定能
+    # 過的時數區間，讓頻道累積正常紀錄，之後有更多數據再考慮拉長。
+    "duration_h": ["1", "2", "3"],
     "upload_slot": ["mon_08", "wed_20", "sat_10"],
     # ── Instagram Reel ──
     "reel_hook": [
