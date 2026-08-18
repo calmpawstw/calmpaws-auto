@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>安寵 Calm Paws — 週報 Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'PingFang TC', 'Helvetica Neue', sans-serif;
+    background: #f7f5f0;
+    color: #1a1a1a;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #1a1a2e;
+    color: white;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo span { color: #f5c842; }
+  .tagline { font-size: 12px; color: #aaa; margin-top: 2px; }
+  .week-label {
+    font-size: 13px; color: #ccc;
+    background: rgba(255,255,255,0.08);
+    padding: 5px 12px; border-radius: 20px;
+  }
+  .refresh-btn {
+    background: #f5c842; color: #1a1a2e;
+    border: none; border-radius: 8px;
+    padding: 7px 16px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: opacity .15s;
+  }
+  .refresh-btn:hover { opacity: 0.85; }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+
+  /* ── KPI Cards ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+  .kpi-card {
+    background: white; border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    border-left: 4px solid #e0ddd8;
+  }
+  .kpi-card.green { border-left-color: #22c55e; }
+  .kpi-card.blue  { border-left-color: #3b82f6; }
+  .kpi-card.amber { border-left-color: #f59e0b; }
+  .kpi-card.red   { border-left-color: #ef4444; }
+  .kpi-label { font-size: 11px; color: #888; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 6px; }
+  .kpi-value { font-size: 28px; font-weight: 700; color: #1a1a1a; line-height: 1; }
+  .kpi-sub { font-size: 12px; color: #666; margin-top: 5px; }
+  .kpi-delta { font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .kpi-delta.up { color: #22c55e; }
+  .kpi-delta.down { color: #ef4444; }
+
+  /* ── Charts Row ── */
+  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 22px; }
+  .card {
+    background: white; border-radius: 12px;
+    padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .card-title { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+  .chart-wrap { position: relative; height: 200px; }
+
+  /* ── Tables Row ── */
+  .tables-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .4px; padding: 0 0 10px; border-bottom: 1px solid #e8e5e0; }
+  td { padding: 9px 0; border-bottom: 1px solid #f0ede8; color: #333; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  .rank { font-size: 11px; color: #bbb; font-weight: 700; width: 24px; }
+  .video-title { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .views-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .views-bar { height: 6px; border-radius: 3px; background: #3b82f6; min-width: 4px; }
+  .views-num { font-size: 12px; color: #666; white-space: nowrap; }
+  .scene-pill {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px; color: white; white-space: nowrap;
+  }
+  .pill-sa  { background: #6366f1; }
+  .pill-sl  { background: #0ea5e9; }
+  .pill-rx  { background: #10b981; }
+  .pill-vet { background: #f59e0b; }
+
+  /* ── Revenue ── */
+  .revenue-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+  .revenue-item { text-align: center; }
+  .rev-label { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+  .rev-value { font-size: 22px; font-weight: 700; }
+  .rev-value.green { color: #16a34a; }
+  .rev-value.blue  { color: #2563eb; }
+  .rev-value.gray  { color: #64748b; }
+
+  /* ── Action list ── */
+  .actions { list-style: none; }
+  .actions li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f0ede8; font-size: 13px; }
+  .actions li:last-child { border-bottom: none; }
+  .action-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .action-text { color: #333; line-height: 1.4; }
+  .action-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
+  .tag-urgent { background: #fee2e2; color: #dc2626; }
+  .tag-auto   { background: #dcfce7; color: #16a34a; }
+  .tag-review { background: #fef3c7; color: #d97706; }
+
+  /* ── Log ── */
+  .log-list { font-size: 12px; font-family: 'SF Mono', 'Menlo', monospace; }
+  .log-entry { padding: 5px 0; border-bottom: 1px solid #f5f2ee; display: flex; gap: 10px; }
+  .log-time { color: #888; flex-shrink: 0; }
+  .log-ok   { color: #16a34a; }
+  .log-warn { color: #d97706; }
+  .log-err  { color: #dc2626; }
+
+  /* ── Status indicator ── */
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+  .dot-green { background: #22c55e; }
+  .dot-amber { background: #f59e0b; }
+  .dot-red   { background: #ef4444; }
+
+  .loading { text-align: center; color: #aaa; padding: 40px; font-size: 14px; }
+  .section-divider { margin: 6px 0 16px; font-size: 11px; font-weight: 700; color: #aaa; letter-spacing: 1px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="logo">安寵 <span>Calm Paws</span></div>
+      <div class="tagline">讓每隻毛孩，安心入眠</div>
+    </div>
+  </div>
+  <span class="week-label" id="weekLabel">載入中...</span>
+  <button class="refresh-btn" onclick="loadDashboard()">↻ 重新整理</button>
+</div>
+
+<div class="container">
+
+  <!-- KPI Cards -->
+  <div class="section-divider">本週核心指標</div>
+  <div class="kpi-row" id="kpiRow">
+    <div class="loading">載入指標中...</div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row" id="chartsRow">
+    <div class="card">
+      <div class="card-title">📈 觀看數趨勢（過去 8 週）</div>
+      <div class="chart-wrap"><canvas id="viewsChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎬 場景表現分佈</div>
+      <div class="chart-wrap"><canvas id="sceneChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Tables -->
+  <div class="tables-row">
+    <div class="card">
+      <div class="card-title">🔥 本週爆款影片 Top 5</div>
+      <table>
+        <thead><tr>
+          <th>#</th><th>標題</th><th style="text-align:right">觀看</th>
+        </tr></thead>
+        <tbody id="topVideos"><tr><td colspan="3" class="loading">載入中...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">🎞️ 最近發佈的 Reels</div>
+      <table>
+        <thead><tr>
+          <th>開場風格</th><th style="text-align:right">觸及</th>
+        </tr></thead>
+        <tbody id="recentReels"><tr><td colspan="2" class="loading">載入中...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Revenue -->
+  <div class="card" style="margin-bottom:22px">
+    <div class="card-title">💰 收益概覽（本月）</div>
+    <div class="revenue-row">
+      <div class="revenue-item">
+        <div class="rev-label">YouTube 廣告</div>
+        <div class="rev-value green" id="revYT">—</div>
+        <div class="kpi-sub" id="revYTSub">每千次觀看 CPM</div>
+      </div>
+      <div class="revenue-item">
+        <div class="rev-label">觀看時數（授權條件）</div>
+        <div class="rev-value blue" id="watchHours">—</div>
+        <div class="kpi-sub">目標 4,000 小時</div>
+      </div>
+      <div class="revenue-item">
+        <div class="rev-label">訂閱數（貨幣化條件）</div>
+        <div class="rev-value gray" id="subCount">—</div>
+        <div class="kpi-sub">目標 1,000 位</div>
+      </div>
+    </div>
+    <!-- 進度條 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid #f0ede8">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:5px">
+          <span>觀看時數進度</span><span id="watchPct">—</span>
+        </div>
+        <div style="height:8px;background:#e8e5e0;border-radius:4px">
+          <div id="watchBar" style="height:8px;background:#3b82f6;border-radius:4px;width:0;transition:width .5s"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:5px">
+          <span>訂閱進度</span><span id="subPct">—</span>
+        </div>
+        <div style="height:8px;background:#e8e5e0;border-radius:4px">
+          <div id="subBar" style="height:8px;background:#22c55e;border-radius:4px;width:0;transition:width .5s"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions + Log -->
+  <div class="tables-row">
+    <div class="card">
+      <div class="card-title">✅ 本週建議行動</div>
+      <ul class="actions" id="actionList">
+        <li><div class="action-icon">⏳</div><div class="action-text">分析中...</div></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">🤖 自動化執行日誌</div>
+      <div class="log-list" id="runLog">
+        <div class="log-entry"><span class="log-time">--:--</span><span>載入中...</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── 真實資料層 ───────────────────────────────────────────────────────────
+// 這個檔案曾經整段都是寫死的示範數字（87 位新訂閱、NT$285 收益、假留言
+// pomeranian_mom88...），從來沒有接上真正的 metrics.db，長得像正在運作
+// 的面板，其實跟頻道實際狀況無關。
+//
+// 現在改成：REAL_DATA 由 cp_dashboard.py 讀 metrics.db 產生，直接把這段
+// 標記區塊整段換成當天的真實 JSON 再寫回這個檔案。沒有執行過 cp_dashboard.py
+// 之前，下面就是誠實的空值 —— 不會顯示任何編出來的正面數字。
+// 產生方式：python cp_dashboard.py
+
+// ⟦REAL_DATA_START⟧
+const REAL_DATA = {
+  "lastUpdated": "2026-08-18T14:20:52.979489",
+  "cumulative": {
+    "totalViews": 18,
+    "watchHours": 0,
+    "subscribers": 0
+  },
+  "weekly": {
+    "views": 0,
+    "viewsDelta": -100.0,
+    "watchHoursNew": 0.0,
+    "subscribers": 0,
+    "subscribersDelta": null,
+    "igReach": 0,
+    "igDelta": null
+  },
+  "revenue": {
+    "ytAdEstimate": 0,
+    "cpm": 0
+  },
+  "topVideos": [
+    {
+      "title": "日常療癒｜讓毛孩隨時放鬆的背景音樂 8 小時 ☀️｜安寵 Calm Paws",
+      "views": 0,
+      "scene": "rx"
+    },
+    {
+      "title": "",
+      "views": 0,
+      "scene": "rx"
+    },
+    {
+      "title": "",
+      "views": 0,
+      "scene": "sl"
+    },
+    {
+      "title": "帶毛孩去看醫生前｜緊張紓解音樂 8 小時 🏥｜安寵 Calm Paws",
+      "views": 0,
+      "scene": "rx"
+    },
+    {
+      "title": "毛孩晚上睡不安穩？深夜安眠療癒音樂 8 小時 🌙｜安寵 Calm Paws",
+      "views": 0,
+      "scene": "rx"
+    }
+  ],
+  "sceneStats": {
+    "labels": [],
+    "views": []
+  },
+  "weeklyTrend": {
+    "labels": [
+      "6/23",
+      "6/30",
+      "7/7",
+      "7/14",
+      "7/21",
+      "7/28",
+      "8/4",
+      "8/11"
+    ],
+    "youtube": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      16,
+      2,
+      0
+    ],
+    "instagram": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "recentReels": [
+    {
+      "permalink": "",
+      "hook": "text_question",
+      "reach": 0,
+      "likes": 0,
+      "saves": 0
+    },
+    {
+      "permalink": "",
+      "hook": "text_question",
+      "reach": 0,
+      "likes": 0,
+      "saves": 0
+    },
+    {
+      "permalink": "",
+      "hook": "text_question",
+      "reach": 0,
+      "likes": 0,
+      "saves": 0
+    },
+    {
+      "permalink": "",
+      "hook": "pet_sleeping_immediate",
+      "reach": 0,
+      "likes": 2,
+      "saves": 0
+    },
+    {
+      "permalink": "",
+      "hook": "text_question",
+      "reach": 0,
+      "likes": 2,
+      "saves": 0
+    }
+  ],
+  "published": {
+    "videos": 12,
+    "reels": 26
+  },
+  "runLog": []
+};
+// ⟦REAL_DATA_END⟧
+
+function getStats() {
+  if (REAL_DATA) return REAL_DATA;
+
+  // 還沒跑過 cp_dashboard.py，誠實顯示空狀態，不編數字
+  return {
+    lastUpdated: null,
+    weekly: { views: 0, viewsDelta: null, watchHoursNew: 0, subscribers: 0,
+              subscribersDelta: null, igReach: 0, igDelta: null },
+    cumulative: { totalViews: 0, watchHours: 0, subscribers: 0 },
+    revenue: { ytAdEstimate: 0, cpm: 0 },
+    topVideos: [],
+    recentReels: [],
+    sceneStats: { labels: [], views: [] },
+    weeklyTrend: { labels: [], youtube: [], instagram: [] },
+    runLog: [],
+    published: { videos: 0, reels: 0 },
+  };
+}
+
+// ── 週期標籤 ─────────────────────────────────────────────────────────────────
+function getWeekLabel() {
+  const now = new Date();
+  const start = new Date(now);
+  start.setDate(now.getDate() - now.getDay() + 1);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+  return `${now.getFullYear()} 第 ${getWeekNum(now)} 週  (${fmt(start)} – ${fmt(end)})`;
+}
+function getWeekNum(d) {
+  const s = new Date(Date.UTC(d.getFullYear(),0,1));
+  return Math.ceil(((d-s)/86400000+s.getUTCDay()+1)/7);
+}
+
+// ── KPI Cards ─────────────────────────────────────────────────────────────────
+function deltaHtml(v) {
+  if (v === null || v === undefined || Number.isNaN(v)) {
+    return '<div class="kpi-delta" style="color:#999">— 無上週資料可比</div>';
+  }
+  const cls = v >= 0 ? 'up' : 'down';
+  const arrow = v >= 0 ? '↑' : '↓';
+  return `<div class="kpi-delta ${cls}">${arrow} ${Math.abs(v)}% vs 上週</div>`;
+}
+
+function renderKPI(s) {
+  const w = s.weekly, c = s.cumulative, p = s.published;
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi-card blue">
+      <div class="kpi-label">本週觀看數</div>
+      <div class="kpi-value">${w.views.toLocaleString()}</div>
+      ${deltaHtml(w.viewsDelta)}
+      <div class="kpi-sub">累計 ${c.totalViews.toLocaleString()}</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">新增訂閱</div>
+      <div class="kpi-value">+${w.subscribers}</div>
+      ${deltaHtml(w.subscribersDelta)}
+      <div class="kpi-sub">總計 ${c.subscribers.toLocaleString()} 位</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">IG 觸及（本週發佈的 Reels）</div>
+      <div class="kpi-value">${w.igReach.toLocaleString()}</div>
+      ${deltaHtml(w.igDelta)}
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">累計發佈</div>
+      <div class="kpi-value">${p.videos} / ${p.reels}</div>
+      <div class="kpi-sub">長片 / Reels</div>
+    </div>
+  `;
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+let viewsChartObj = null, sceneChartObj = null;
+
+function renderCharts(s) {
+  if (viewsChartObj) viewsChartObj.destroy();
+  if (sceneChartObj) sceneChartObj.destroy();
+
+  const t = s.weeklyTrend;
+  viewsChartObj = new Chart(document.getElementById('viewsChart'), {
+    type: 'line',
+    data: {
+      labels: t.labels,
+      datasets: [
+        {
+          label: 'YouTube 觀看',
+          data: t.youtube,
+          borderColor: '#3b82f6', backgroundColor: '#3b82f620',
+          tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#3b82f6',
+        },
+        {
+          label: 'IG 觸及',
+          data: t.instagram,
+          borderColor: '#c13584', backgroundColor: '#c1358415',
+          tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#c13584',
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } } },
+      scales: {
+        y: { grid: { color: '#f0ede8' }, ticks: { font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      }
+    }
+  });
+
+  const sc = s.sceneStats;
+  sceneChartObj = new Chart(document.getElementById('sceneChart'), {
+    type: 'doughnut',
+    data: {
+      labels: sc.labels,
+      datasets: [{
+        data: sc.views,
+        backgroundColor: ['#6366f1','#0ea5e9','#10b981','#f59e0b'],
+        borderWidth: 0,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}%` } },
+      }
+    }
+  });
+}
+
+// ── Top Videos ────────────────────────────────────────────────────────────────
+function renderTopVideos(s) {
+  if (!s.topVideos.length) {
+    document.getElementById('topVideos').innerHTML =
+      '<tr><td colspan="3" class="loading">尚無影片數據</td></tr>';
+    return;
+  }
+  const maxViews = Math.max(...s.topVideos.map(v => v.views), 1);
+  const pillClass = { sa: 'pill-sa', sl: 'pill-sl', rx: 'pill-rx', vet: 'pill-vet' };
+  const pillLabel = { sa: '分離', sl: '睡眠', rx: '放鬆', vet: '就醫' };
+
+  document.getElementById('topVideos').innerHTML = s.topVideos.map((v, i) => `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td>
+        <div class="video-title">${v.title}</div>
+        <span class="scene-pill ${pillClass[v.scene] || 'pill-rx'}">${pillLabel[v.scene] || v.scene}</span>
+      </td>
+      <td>
+        <div class="views-bar-wrap" style="justify-content:flex-end">
+          <span class="views-num">${v.views.toLocaleString()}</span>
+          <div class="views-bar" style="width:${Math.round(v.views/maxViews*60)}px"></div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── 最近發佈的 Reels ─────────────────────────────────────────────────────────
+function renderRecentReels(s) {
+  const reels = s.recentReels || [];
+  if (!reels.length) {
+    document.getElementById('recentReels').innerHTML =
+      '<tr><td colspan="2" class="loading">尚無 Reels 數據</td></tr>';
+    return;
+  }
+  document.getElementById('recentReels').innerHTML = reels.map(r => `
+    <tr>
+      <td style="color:#444">
+        ${r.permalink
+          ? `<a href="${r.permalink}" target="_blank" style="color:#6366f1;text-decoration:none">${r.hook || '(未標記開場)'}</a>`
+          : (r.hook || '(未標記開場)')}
+        <div style="font-size:11px;color:#999;margin-top:2px">❤ ${r.likes} · 🔖 ${r.saves}</div>
+      </td>
+      <td style="text-align:right;color:#666">${r.reach.toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Revenue ───────────────────────────────────────────────────────────────────
+function renderRevenue(s) {
+  const c = s.cumulative, r = s.revenue;
+  document.getElementById('revYT').textContent = `NT$ ${r.ytAdEstimate.toLocaleString()}`;
+  document.getElementById('revYTSub').textContent = `CPM NT$ ${r.cpm}`;
+  document.getElementById('watchHours').textContent = `${c.watchHours.toLocaleString()} 小時`;
+  document.getElementById('subCount').textContent = `${c.subscribers.toLocaleString()} 位`;
+
+  const watchPct = Math.min(100, Math.round(c.watchHours / 4000 * 100));
+  const subPct = Math.min(100, Math.round(c.subscribers / 1000 * 100));
+
+  document.getElementById('watchPct').textContent = `${watchPct}%`;
+  document.getElementById('subPct').textContent = `${subPct}%`;
+
+  setTimeout(() => {
+    document.getElementById('watchBar').style.width = watchPct + '%';
+    document.getElementById('subBar').style.width = subPct + '%';
+  }, 100);
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+// 只根據真實數字動態產生建議，不編造沒有資料來源的行動項目
+// （像「獸醫合作信件追蹤」這種——這裡沒有任何模組在追蹤這件事，
+// 之前寫死在畫面上完全是編的）。
+function renderActions(s) {
+  const w = s.weekly, c = s.cumulative;
+  const actions = [];
+
+  if (c.subscribers < 1000) {
+    const needed = 1000 - c.subscribers;
+    actions.push({ icon: '🎯', text: `距 YouTube 貨幣化還差 <b>${needed.toLocaleString()} 位訂閱</b>`, tag: 'urgent' });
+  }
+  if (c.watchHours < 4000) {
+    const needed = Math.round(4000 - c.watchHours);
+    actions.push({ icon: '⏱', text: `觀看時數還差 <b>${needed.toLocaleString()} 小時</b>（12 個月滾動）`, tag: 'review' });
+  }
+  if (w.viewsDelta !== null && w.viewsDelta > 10) {
+    actions.push({ icon: '🚀', text: `本週觀看成長 ${w.viewsDelta}%`, tag: 'review' });
+  } else if (w.viewsDelta !== null && w.viewsDelta < -10) {
+    actions.push({ icon: '📉', text: `本週觀看下滑 ${Math.abs(w.viewsDelta)}%，留意是否有影片卡在處理中`, tag: 'urgent' });
+  }
+  if (s.published.videos === 0 && s.published.reels === 0) {
+    actions.push({ icon: '⚠️', text: '資料庫裡還沒有任何已發布內容的紀錄', tag: 'urgent' });
+  }
+  if (!actions.length) {
+    actions.push({ icon: '✅', text: '目前沒有需要特別關注的項目', tag: 'auto' });
+  }
+
+  const tagClass = { urgent: 'tag-urgent', auto: 'tag-auto', review: 'tag-review' };
+  const tagLabel = { urgent: '優先', auto: '自動', review: '待確認' };
+
+  document.getElementById('actionList').innerHTML = actions.map(a => `
+    <li>
+      <div class="action-icon">${a.icon}</div>
+      <div class="action-text">
+        ${a.text}
+        <span class="action-tag ${tagClass[a.tag]}">${tagLabel[a.tag]}</span>
+      </div>
+    </li>
+  `).join('');
+}
+
+// ── Run Log ───────────────────────────────────────────────────────────────────
+// 真實來源：優化引擎 decisions 表（例如停用失效選項、拉長時數的調整）
+function renderLog(s) {
+  const statusClass = { ok: 'log-ok', warn: 'log-warn', err: 'log-err' };
+  const statusIcon  = { ok: '✓', warn: '⚠', err: '✕' };
+
+  if (!s.runLog.length) {
+    document.getElementById('runLog').innerHTML =
+      '<div class="log-entry" style="color:#999">本週沒有自動調整紀錄</div>';
+    return;
+  }
+  document.getElementById('runLog').innerHTML = s.runLog.map(l => `
+    <div class="log-entry">
+      <span class="log-time">${l.time}</span>
+      <span class="${statusClass[l.status]}">${statusIcon[l.status]}</span>
+      <span>${l.msg}</span>
+    </div>
+  `).join('');
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+function loadDashboard() {
+  const s = getStats();
+  document.getElementById('weekLabel').textContent =
+    s.lastUpdated ? `更新於 ${s.lastUpdated.slice(0,16).replace('T',' ')}` : '尚未執行 cp_dashboard.py';
+  renderKPI(s);
+  renderCharts(s);
+  renderTopVideos(s);
+  renderRecentReels(s);
+  renderRevenue(s);
+  renderActions(s);
+  renderLog(s);
+}
+
+window.addEventListener('load', loadDashboard);
+</script>
+
+</body>
+</html>
