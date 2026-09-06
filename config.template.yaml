@@ -346,7 +346,11 @@ scenes:
     '
 schedule:
   youtube_cron: 0 0 * * 1
-  youtube_video_duration_hours: 8
+  # 原本是 8。8 小時長片在這個新頻道上會卡在 YouTube「處理中」不會完成
+  # （疑似新頻道對長片有處理/審核門檻）。這裡只是「優化引擎沒有覆寫時」
+  # 的保底預設值；實際每支影片用的時數應該由 orchestrator.py 讀取
+  # 優化引擎（cp_optimizer.py，候選 1/2/3 小時）的選擇覆寫。
+  youtube_video_duration_hours: 2
   instagram_cron: 0 1 */2 * *
   reels_duration_seconds: 60
   comment_reply_cron: 0 */4 * * *

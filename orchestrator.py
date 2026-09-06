@@ -345,7 +345,13 @@ def _apply_cp_params(scene: dict, config: dict, params: dict, logger) -> tuple:
     if params.get("duration_h"):
         try:
             h = float(params["duration_h"])
-            config.setdefault("youtube", {})["youtube_video_duration_hours"] = h
+            # _cp_fix_2026-09-06：原本寫進 config["youtube"]，但實際算
+            # 時長與標題的地方讀的是 config["schedule"]，兩個字典不是同一個。
+            # 之前這行等於完全沒有生效——不管優化引擎選了 1/2/3 小時，
+            # 影片實際還是照 config["schedule"] 裡的值算，也就是 config.yaml
+            # 的固定值（8）。這正是「明明改了候選時數，長片還是卡在處理中」
+            # 的根本原因。改成寫進 config["schedule"]，才是真正被讀取的地方。
+            config.setdefault("schedule", {})["youtube_video_duration_hours"] = h
             scene["_duration_h"] = h
         except (TypeError, ValueError):
             pass
