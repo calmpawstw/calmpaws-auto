@@ -75,6 +75,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: 確保通知用的 Issue 標籤存在
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create "自動化失敗" --repo "${{ github.repository }}" \
+            --color "d73a4a" --description "自動化流程失敗，需要人工檢查" \
+            2>/dev/null || true
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -244,7 +253,8 @@ jobs:
           2. 在 Mac 上執行 \`永久修復YouTube授權.command\`
 
           [執行紀錄](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
-              --label "自動化失敗" 2>/dev/null || true
+              --label "自動化失敗" \
+              || echo "⚠️ 開 Issue 失敗，見上方錯誤訊息"
           else
             echo "已有未關閉的相同 Issue，不重複建立"
           fi
@@ -267,9 +277,13 @@ jobs:
           EXP=$(echo "$RESP" | python -c "import sys,json;print(json.load(sys.stdin).get('expires_in',0))" 2>/dev/null)
           if [ -z "$NEW" ]; then
             echo "❌ 續期失敗：$RESP"
-            gh issue create \
-              --title "🔑 Instagram Token 續期失敗 — 需要手動處理" \
-              --body "自動續期失敗，Token 可能已過期或權限不足。
+            TITLE="🔑 Instagram Token 續期失敗 — 需要手動處理"
+            if gh issue list --repo "${{ github.repository }}" --state open \
+                 --search "$TITLE in:title" --json number --jq 'length' \
+                 | grep -q '^0$'; then
+              gh issue create \
+                --title "$TITLE" \
+                --body "自動續期失敗，Token 可能已過期或權限不足。
 
           **影響**：Instagram 自動發文與數據收集會停止。
 
@@ -277,7 +291,11 @@ jobs:
           然後到 Settings → Secrets → Actions 更新 IG_ACCESS_TOKEN。
 
           [執行紀錄](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
-              --label "自動化失敗" 2>/dev/null || true
+                --label "自動化失敗" \
+                || echo "⚠️ 開 Issue 失敗，見上方錯誤訊息"
+            else
+              echo "已有未關閉的相同 Issue，不重複建立"
+            fi
             exit 0
           fi
           echo "✅ 新 Token 有效期 $((EXP / 86400)) 天"
@@ -487,7 +505,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue create \
-            --title "⚠️ 每日自動化失敗 $(date -u +%Y-%m-%d)" \
-            --body "[執行紀錄](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
-            --label "自動化失敗" 2>/dev/null || true
+          TITLE="⚠️ 每日自動化失敗 $(date -u +%Y-%m-%d)"
+          if gh issue list --repo "${{ github.repository }}" --state open \
+               --search "$TITLE in:title" --json number --jq 'length' \
+               | grep -q '^0$'; then
+            gh issue create \
+              --title "$TITLE" \
+              --body "[執行紀錄](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
+              --label "自動化失敗" \
+              || echo "⚠️ 開 Issue 失敗，見上方錯誤訊息"
+          else
+            echo "已有未關閉的相同 Issue，不重複建立"
+          fi
