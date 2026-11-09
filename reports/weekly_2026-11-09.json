@@ -1,0 +1,835 @@
+{
+  "generated": "2026-11-09 21:50",
+  "week_of": "2026 年 11 月 09 日",
+  "ypp": {
+    "subs": 1,
+    "subs_target": 1000,
+    "subs_pct": 0.1,
+    "wh": 2.5,
+    "wh_target": 4000,
+    "wh_pct": 0.1,
+    "ig_followers": 5
+  },
+  "weekly": {
+    "views": {
+      "cur": 0,
+      "prev": 1,
+      "avg4": 1.0,
+      "delta": -100.0
+    },
+    "watch_hours": {
+      "cur": 0.0,
+      "prev": 0.0,
+      "avg4": 0.0,
+      "delta": null
+    },
+    "subs": {
+      "cur": 0,
+      "prev": 0,
+      "avg4": 0.0,
+      "delta": null
+    }
+  },
+  "videos": [
+    {
+      "video_id": "2ieOQY2YCqk",
+      "title": "3.0 小時 整夜播放｜毛孩深層睡眠音樂 🌙｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-11-07T17:28:23Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 2
+    },
+    {
+      "video_id": "9AAuj_zzO-4",
+      "title": "3.0 小時 就醫前陪伴｜毛孩緊張舒緩音樂 🏥｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-11-04T18:59:15Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 5
+    },
+    {
+      "video_id": "DQNiCkxPhjg",
+      "title": "3.0 小時 就醫前陪伴｜毛孩緊張舒緩音樂 🏥｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-11-02T21:23:02Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 7
+    },
+    {
+      "video_id": "MUfkLrw9ylY",
+      "title": "3.0 小時 就醫前陪伴｜毛孩緊張舒緩音樂 🏥｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-31T16:29:44Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 9
+    },
+    {
+      "video_id": "v9kJgtFCA5U",
+      "title": "讓毛孩看醫生不再發抖｜就醫緊張舒緩音樂 3.0 小時 🏥｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-28T17:45:32Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 12
+    },
+    {
+      "video_id": "slvBBv0B_J8",
+      "title": "3.0 小時 循環播放｜毛孩日常放鬆背景音樂 ☀️｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-26T17:46:05Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 14
+    },
+    {
+      "video_id": "D9y-kEjULFA",
+      "title": "3.0 小時 整夜播放｜毛孩深層睡眠音樂 🌙｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-24T15:05:17Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 16
+    },
+    {
+      "video_id": "H8WsDZ0bQ7w",
+      "title": "3.0 小時 整夜播放｜毛孩深層睡眠音樂 🌙｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-21T16:32:08Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 19
+    },
+    {
+      "video_id": "XadI2tWSzi4",
+      "title": "3.0 小時 就醫前陪伴｜毛孩緊張舒緩音樂 🏥｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-19T17:47:23Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 21
+    },
+    {
+      "video_id": "jWZH7cFjmyY",
+      "title": "讓毛孩一夜好眠｜深層睡眠療癒音樂 3.0 小時 🌙｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-17T14:41:08Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 23
+    },
+    {
+      "video_id": "r3r9kYKiJIE",
+      "title": "3.0 小時 就醫前陪伴｜毛孩緊張舒緩音樂 🏥｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-14T16:33:13Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 25
+    },
+    {
+      "video_id": "3A4pNd5Bn2w",
+      "title": "讓毛孩一夜好眠｜深層睡眠療癒音樂 3.0 小時 🌙｜安寵 Calm Paws",
+      "scene": null,
+      "title_formula": null,
+      "thumb_style": null,
+      "published_at": "2026-10-12T20:47:56Z",
+      "views": 0,
+      "watch_hours": 0.0,
+      "ctr": 0.0,
+      "avd_sec": 0.0,
+      "subs_gained": 0,
+      "age_days": 28
+    }
+  ],
+  "reels": [
+    {
+      "media_id": "18028402580864099",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-09T21:18:44.489691+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
+    {
+      "media_id": "18107699975342195",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-08T16:57:08.577422+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 1,
+      "comments": 0
+    },
+    {
+      "media_id": "17954074629313917",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-07T16:46:09.889955+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
+    {
+      "media_id": "18025888418930575",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-06T17:50:58.796069+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 1,
+      "comments": 0
+    },
+    {
+      "media_id": "18035397830855058",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-05T18:33:24.676527+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
+    {
+      "media_id": "17911038240574670",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-04T18:28:55.507126+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 1,
+      "comments": 0
+    },
+    {
+      "media_id": "18094887704190547",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-03T18:18:11.442044+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 1,
+      "comments": 0
+    },
+    {
+      "media_id": "18188588710419946",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-02T20:40:02.753473+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 1,
+      "comments": 0
+    },
+    {
+      "media_id": "17933926284421332",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-11-01T17:01:43.989125+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    },
+    {
+      "media_id": "18416780812095480",
+      "permalink": null,
+      "hook_style": "text_question",
+      "published_at": "2026-10-31T15:58:56.315836+00:00",
+      "reach": 0,
+      "plays": 0,
+      "saves": 0,
+      "shares": 0,
+      "likes": 0,
+      "comments": 0
+    }
+  ],
+  "arms": {
+    "scene": [
+      {
+        "value": "car_travel",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "kitten_calm",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "senior_pet",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "sleep_night",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "thunderstorm",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "sleep",
+        "n": 211,
+        "mean": 0.22,
+        "ci_low": 0.165,
+        "ci_high": 0.276,
+        "active": true
+      },
+      {
+        "value": "vet_visit",
+        "n": 268,
+        "mean": 0.22,
+        "ci_low": 0.17,
+        "ci_high": 0.269,
+        "active": true
+      },
+      {
+        "value": "relax",
+        "n": 88,
+        "mean": 0.183,
+        "ci_low": 0.104,
+        "ci_high": 0.263,
+        "active": true
+      },
+      {
+        "value": "separation_anxiety",
+        "n": 190,
+        "mean": 0.168,
+        "ci_low": 0.115,
+        "ci_high": 0.221,
+        "active": true
+      }
+    ],
+    "title_formula": [
+      {
+        "value": "duration_first",
+        "n": 7,
+        "mean": 0.111,
+        "ci_low": 0,
+        "ci_high": 0.306,
+        "active": true
+      },
+      {
+        "value": "outcome_first",
+        "n": 13,
+        "mean": 0.067,
+        "ci_low": 0,
+        "ci_high": 0.189,
+        "active": true
+      },
+      {
+        "value": "problem_first",
+        "n": 13,
+        "mean": 0.067,
+        "ci_low": 0,
+        "ci_high": 0.189,
+        "active": false
+      },
+      {
+        "value": "scenario_first",
+        "n": 16,
+        "mean": 0.056,
+        "ci_low": 0,
+        "ci_high": 0.159,
+        "active": false
+      }
+    ],
+    "thumb_style": [
+      {
+        "value": "big_text_closeup",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "minimal_illust",
+        "n": 10,
+        "mean": 0.083,
+        "ci_low": 0,
+        "ci_high": 0.234,
+        "active": false
+      },
+      {
+        "value": "realistic_sleep",
+        "n": 13,
+        "mean": 0.067,
+        "ci_low": 0,
+        "ci_high": 0.189,
+        "active": false
+      },
+      {
+        "value": "split_beforeafter",
+        "n": 26,
+        "mean": 0.036,
+        "ci_low": 0,
+        "ci_high": 0.103,
+        "active": true
+      }
+    ],
+    "duration_h": [
+      {
+        "value": "10",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "3",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": true
+      },
+      {
+        "value": "8",
+        "n": 0,
+        "mean": 0.5,
+        "ci_low": 0,
+        "ci_high": 1,
+        "active": false
+      },
+      {
+        "value": "1",
+        "n": 10,
+        "mean": 0.083,
+        "ci_low": 0,
+        "ci_high": 0.234,
+        "active": true
+      },
+      {
+        "value": "2",
+        "n": 13,
+        "mean": 0.067,
+        "ci_low": 0,
+        "ci_high": 0.189,
+        "active": true
+      }
+    ],
+    "upload_slot": [
+      {
+        "value": "sat_10",
+        "n": 7,
+        "mean": 0.111,
+        "ci_low": 0,
+        "ci_high": 0.306,
+        "active": true
+      },
+      {
+        "value": "mon_08",
+        "n": 16,
+        "mean": 0.056,
+        "ci_low": 0,
+        "ci_high": 0.159,
+        "active": false
+      },
+      {
+        "value": "wed_20",
+        "n": 26,
+        "mean": 0.036,
+        "ci_low": 0,
+        "ci_high": 0.103,
+        "active": true
+      }
+    ],
+    "reel_hook": [
+      {
+        "value": "owner_pov",
+        "n": 43,
+        "mean": 0.311,
+        "ci_low": 0.177,
+        "ci_high": 0.445,
+        "active": false
+      },
+      {
+        "value": "text_question",
+        "n": 449,
+        "mean": 0.248,
+        "ci_low": 0.208,
+        "ci_high": 0.288,
+        "active": true
+      },
+      {
+        "value": "pet_sleeping_immediate",
+        "n": 176,
+        "mean": 0.158,
+        "ci_low": 0.104,
+        "ci_high": 0.211,
+        "active": true
+      },
+      {
+        "value": "before_after",
+        "n": 40,
+        "mean": 0.024,
+        "ci_low": 0,
+        "ci_high": 0.069,
+        "active": false
+      }
+    ],
+    "hashtag_set": [
+      {
+        "value": "broad_tw",
+        "n": 318,
+        "mean": 0.255,
+        "ci_low": 0.207,
+        "ci_high": 0.303,
+        "active": true
+      },
+      {
+        "value": "mixed",
+        "n": 332,
+        "mean": 0.214,
+        "ci_low": 0.17,
+        "ci_high": 0.258,
+        "active": true
+      },
+      {
+        "value": "niche_behavior",
+        "n": 58,
+        "mean": 0.017,
+        "ci_low": 0,
+        "ci_high": 0.049,
+        "active": false
+      }
+    ]
+  },
+  "decisions": [],
+  "flags": [
+    {
+      "ts": "2026-11-02T21:26:19.955627",
+      "severity": "warn",
+      "kind": "留存率偏低",
+      "detail": "平均留存 0.0%，長片觀眾流失快，建議檢查開頭 30 秒與音樂實際品質"
+    },
+    {
+      "ts": "2026-11-02T21:26:19.955627",
+      "severity": "warn",
+      "kind": "訂閱停滯",
+      "detail": "連續 14 天 0 新訂閱，需檢視頻道定位與導流"
+    },
+    {
+      "ts": "2026-11-02T21:26:20.017119",
+      "severity": "warn",
+      "kind": "留存率偏低",
+      "detail": "平均留存 0.0%，長片觀眾流失快，建議檢查開頭 30 秒與音樂實際品質"
+    },
+    {
+      "ts": "2026-11-02T21:26:20.017119",
+      "severity": "warn",
+      "kind": "訂閱停滯",
+      "detail": "連續 14 天 0 新訂閱，需檢視頻道定位與導流"
+    },
+    {
+      "ts": "2026-11-09T21:50:37.025702",
+      "severity": "warn",
+      "kind": "留存率偏低",
+      "detail": "平均留存 0.0%，長片觀眾流失快，建議檢查開頭 30 秒與音樂實際品質"
+    },
+    {
+      "ts": "2026-11-09T21:50:37.025702",
+      "severity": "warn",
+      "kind": "訂閱停滯",
+      "detail": "連續 14 天 0 新訂閱，需檢視頻道定位與導流"
+    },
+    {
+      "ts": "2026-11-09T21:50:37.068959",
+      "severity": "warn",
+      "kind": "留存率偏低",
+      "detail": "平均留存 0.0%，長片觀眾流失快，建議檢查開頭 30 秒與音樂實際品質"
+    },
+    {
+      "ts": "2026-11-09T21:50:37.068959",
+      "severity": "warn",
+      "kind": "訂閱停滯",
+      "detail": "連續 14 天 0 新訂閱，需檢視頻道定位與導流"
+    }
+  ],
+  "costs": [
+    {
+      "service": "Anthropic",
+      "usd": 1.2
+    },
+    {
+      "service": "Replicate",
+      "usd": 2.4
+    }
+  ],
+  "cost_total": 3.6,
+  "plan": [
+    {
+      "scene": "relax",
+      "title_formula": "duration_first",
+      "thumb_style": "big_text_closeup",
+      "duration_h": "3",
+      "upload_slot": "sat_10"
+    },
+    {
+      "scene": "relax",
+      "title_formula": "duration_first",
+      "thumb_style": "big_text_closeup",
+      "duration_h": "2",
+      "upload_slot": "wed_20"
+    },
+    {
+      "scene": "sleep",
+      "title_formula": "duration_first",
+      "thumb_style": "big_text_closeup",
+      "duration_h": "3",
+      "upload_slot": "sat_10"
+    }
+  ],
+  "revenue": {
+    "by_period": {},
+    "cost_by_period": {
+      "2026-07": 158.0,
+      "2026-08": 619.0,
+      "2026-09": 518.0,
+      "2026-10": 432.0,
+      "2026-11": 130.0
+    },
+    "total_revenue_twd": 0,
+    "total_cost_twd": 1857.0,
+    "net_twd": -1857.0
+  },
+  "projection": {
+    "status": {
+      "subs": 1,
+      "hours": 2.5,
+      "subs_pct": 0.1,
+      "hours_pct": 0.1,
+      "as_of": "2026-11-09"
+    },
+    "rate": {
+      "subs_per_day": 0.0,
+      "hours_per_day": 0.0,
+      "days": 29,
+      "reliable": true
+    },
+    "days_to_subs": null,
+    "days_to_hours": null,
+    "verdict": "目前成長率為零，照這個速度不會達標"
+  },
+  "keywords": [
+    {
+      "term": "狗狗怕打雷",
+      "lang": "en",
+      "opportunity": 1.0,
+      "top_median_views": 6749,
+      "top_median_subs": 1960
+    },
+    {
+      "term": "狗怕打雷",
+      "lang": "en",
+      "opportunity": 0.98,
+      "top_median_views": 17524,
+      "top_median_subs": 1620
+    },
+    {
+      "term": "狗狗音樂",
+      "lang": "zh-TW",
+      "opportunity": 0.88,
+      "top_median_views": 769934,
+      "top_median_subs": 4070
+    },
+    {
+      "term": "狗狗焦慮音樂",
+      "lang": "zh-TW",
+      "opportunity": 0.88,
+      "top_median_views": 765437,
+      "top_median_subs": 4120
+    },
+    {
+      "term": "白噪音 寵物",
+      "lang": "en",
+      "opportunity": 0.88,
+      "top_median_views": 690078,
+      "top_median_subs": 8430
+    },
+    {
+      "term": "寵物音樂無廣告",
+      "lang": "zh-TW",
+      "opportunity": 0.86,
+      "top_median_views": 769934,
+      "top_median_subs": 8430
+    },
+    {
+      "term": "寵物放鬆",
+      "lang": "zh-TW",
+      "opportunity": 0.86,
+      "top_median_views": 384473,
+      "top_median_subs": 3000
+    },
+    {
+      "term": "分離焦慮 狗",
+      "lang": "zh-TW",
+      "opportunity": 0.82,
+      "top_median_views": 56023,
+      "top_median_subs": 185000
+    },
+    {
+      "term": "狗狗焦慮",
+      "lang": "zh-TW",
+      "opportunity": 0.8,
+      "top_median_views": 50366,
+      "top_median_subs": 150000
+    },
+    {
+      "term": "分離焦慮 狗狗",
+      "lang": "zh-TW",
+      "opportunity": 0.8,
+      "top_median_views": 68529,
+      "top_median_subs": 209000
+    }
+  ],
+  "competitors": [
+    {
+      "title": "Relax My Dog - Relaxing Music for Dogs",
+      "subs": 2040000,
+      "recent_uploads": 10,
+      "avg_recent_views": 995
+    },
+    {
+      "title": "PetTunes - Music for Pets",
+      "subs": 767000,
+      "recent_uploads": 1,
+      "avg_recent_views": 2546
+    },
+    {
+      "title": "뮤직 메이트 Music Mate",
+      "subs": 501000,
+      "recent_uploads": 1,
+      "avg_recent_views": 4244
+    },
+    {
+      "title": "放鬆音樂 - Relaxing Music Sleep",
+      "subs": 337000,
+      "recent_uploads": 0,
+      "avg_recent_views": 65033
+    },
+    {
+      "title": "Healing & Meditation",
+      "subs": 331000,
+      "recent_uploads": 10,
+      "avg_recent_views": 21953
+    },
+    {
+      "title": "Cats Only Channel",
+      "subs": 317000,
+      "recent_uploads": 0,
+      "avg_recent_views": 288347
+    },
+    {
+      "title": "Empti Music |Healing Music for Sleep & Mindfulness",
+      "subs": 231000,
+      "recent_uploads": 10,
+      "avg_recent_views": 352
+    },
+    {
+      "title": "Relax with TV Backgrounds",
+      "subs": 210000,
+      "recent_uploads": 1,
+      "avg_recent_views": 20632
+    }
+  ]
+}
